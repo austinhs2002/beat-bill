@@ -15,10 +15,13 @@
   #title h1 { margin: 0; font-size: 20px; letter-spacing: .28em; font-weight: 600; }
   #phase { margin-top: 6px; font-size: 12px; letter-spacing: .22em; color: var(--violet); }
   #bank { position: fixed; right: 24px; top: 20px; padding: 10px 18px; text-align: right; }
+  #bank { transition: border-color .4s, box-shadow .4s; }
+  #bank.hot { border-color: rgba(52, 211, 153, .75); box-shadow: 0 0 24px rgba(16, 185, 129, .28); }
   #bank small { display: block; font-size: 10px; letter-spacing: .2em; opacity: .6; }
   #money { font-size: 24px; font-variant-numeric: tabular-nums; color: var(--emerald); font-weight: 600; }
   #legend { position: fixed; left: 24px; bottom: 120px; padding: 12px 16px; min-width: 190px; }
   #legend div { display: flex; justify-content: space-between; gap: 18px; padding: 2px 0; }
+  #legend .row { cursor: pointer; transition: opacity .2s; } #legend .row.off { opacity: .3; }
   #legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 8px; }
   #legend b { font-variant-numeric: tabular-nums; font-weight: 500; opacity: .8; }
   #ticker { position: fixed; right: 24px; bottom: 120px; width: 300px; height: 132px; overflow: hidden;
@@ -28,6 +31,9 @@
     display: flex; flex-direction: column; gap: 10px; width: min(760px, calc(100vw - 32px)); box-sizing: border-box; }
   #scrubrow { display: flex; align-items: center; gap: 12px; font-size: 11px; letter-spacing: .18em; }
   #scrub { flex: 1; accent-color: var(--violet); }
+  #stops { display: flex; justify-content: space-between; margin: -4px 52px 0; }
+  #stops button { background: none; border: none; padding: 2px 4px; font-size: 10px; letter-spacing: .14em; opacity: .55; }
+  #stops button.on { opacity: 1; color: var(--violet); }
   #btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
   button, label.btn { font: inherit; font-size: 12px; letter-spacing: .08em; color: var(--ink); cursor: pointer;
     background: rgba(139, 92, 246, .16); border: 1px solid rgba(139, 92, 246, .5); border-radius: 9px; padding: 8px 14px; }
@@ -49,6 +55,7 @@
 <div id="ticker" class="glass"></div>
 <div id="bar" class="glass">
   <div id="scrubrow"><span>CHAOS</span><input id="scrub" type="range" min="0" max="3" step="0.001" value="0"><span>ORDER</span></div>
+  <div id="stops"><button data-p="0">ENTROPY</button><button data-p="1">RINGS</button><button data-p="2">LATTICE</button><button data-p="3">PAYOUT</button></div>
   <div id="btns">
     <button class="primary" id="go">ORGANIZE</button>
     <button id="reset">BACK TO CHAOS</button>
@@ -135,7 +142,7 @@ pts.sort((a, b) => a[3] - b[3]); pts.length = N;
 pts.sort((a, b) => a[1] - b[1] || Math.atan2(a[2], a[0]) - Math.atan2(b[2], b[0]));
 
 const aChaos = new Float32Array(N * 3), aLattice = new Float32Array(N * 3), aBrain = new Float32Array(N * 3),
-      aAxis = new Float32Array(N * 3), aMeta = new Float32Array(N * 4);
+      aAxis = new Float32Array(N * 3), aMeta = new Float32Array(N * 4), aCrease = new Float32Array(N);
 const rnd = (a = 1) => (Math.random() * 2 - 1) * a;
 for (let i = 0; i < N; i++) {
   // chaos cloud
@@ -145,6 +152,7 @@ for (let i = 0; i < N; i++) {
   // a wrinkly two-lobed blob, for the "absorb" gag
   const b = new THREE.Vector3(rnd(), rnd(), rnd()).normalize();
   const w = 1 + 0.09 * Math.sin(9 * b.y + 3 * Math.sin(7 * b.z)) + 0.05 * Math.sin(13 * b.x * b.z);
+  aCrease[i] = 0.5 - 0.5 * Math.sin(9 * b.y + 3 * Math.sin(7 * b.z));   // 1 = bottom of a fold
   const side = Math.sign(b.x) || 1;
   aBrain.set([b.x * 2.5 * w + side * 0.28, b.y * 2.3 * w + 1.5, b.z * 3.3 * w], i * 3);
   const ax = new THREE.Vector3(rnd(), rnd(), rnd()).normalize();
@@ -155,19 +163,20 @@ geo.setAttribute('aChaos', new THREE.InstancedBufferAttribute(aChaos, 3));
 geo.setAttribute('aLattice', new THREE.InstancedBufferAttribute(aLattice, 3));
 geo.setAttribute('aBrain', new THREE.InstancedBufferAttribute(aBrain, 3));
 geo.setAttribute('aAxis', new THREE.InstancedBufferAttribute(aAxis, 3));
+geo.setAttribute('aCrease', new THREE.InstancedBufferAttribute(aCrease, 1));
 const metaAttr = new THREE.InstancedBufferAttribute(aMeta, 4);
 geo.setAttribute('aMeta', metaAttr);
 
 const uniforms = {
-  uTime: { value: 0 }, uP: { value: 0 }, uBrain: { value: 1 },
+  uTime: { value: 0 }, uP: { value: 0 }, uBrain: { value: 1 }, uSolo: { value: -1 },
   uCols: { value: STAGES.map(s => new THREE.Color(s.hex)) },
 };
 const mat = new THREE.ShaderMaterial({
   uniforms,
   vertexShader: /* glsl */`
-    attribute vec3 aChaos, aLattice, aBrain, aAxis; attribute vec4 aMeta;
-    uniform float uTime, uP, uBrain; uniform vec3 uCols[4];
-    varying vec3 vCol; varying vec3 vN; varying float vGlow; varying float vPay;
+    attribute vec3 aChaos, aLattice, aBrain, aAxis; attribute vec4 aMeta; attribute float aCrease;
+    uniform float uTime, uP, uBrain, uSolo; uniform vec3 uCols[4];
+    varying vec3 vCol; varying vec3 vN; varying vec3 vW; varying float vGlow, vPay, vOrder, vDim;
     mat3 rot(vec3 a, float t) { float c = cos(t), s = sin(t), o = 1. - c;
       return mat3(o*a.x*a.x+c, o*a.x*a.y+a.z*s, o*a.z*a.x-a.y*s,
                   o*a.x*a.y-a.z*s, o*a.y*a.y+c, o*a.y*a.z+a.x*s,
@@ -184,7 +193,7 @@ const mat = new THREE.ShaderMaterial({
       vec3 c = aChaos;
       c += .7 * vec3(sin(uTime*.7 + c.y*.8 + seed*6.), cos(uTime*.6 + c.z*.7 + seed*4.), sin(uTime*.5 + c.x*.9));
       c = rot(Y, uTime * .06 * (.5 + seed)) * (c - vec3(0., 1.5, 0.)) + vec3(0., 1.5, 0.);
-      c = mix(aBrain, c, uBrain);
+      c = mix(aBrain, c, uBrain) + normalize(aBrain - vec3(0., 1.5, 0.)) * sin(uBrain * 3.14159) * 3.5;   // shatter burst
 
       // 1: sorting rings, one lane per kind
       float dir = mod(type, 2.) < .5 ? 1. : -1.;
@@ -204,18 +213,25 @@ const mat = new THREE.ShaderMaterial({
       local = mix(local, spin * local, e2c); nrm = mix(nrm, spin * nrm, e2c);
 
       vec3 tc = type < .5 ? uCols[0] : type < 1.5 ? uCols[1] : type < 2.5 ? uCols[2] : uCols[3];
-      vCol = mix(vec3(.30, .32, .40), tc, e1);
-      vGlow = smoothstep(.7, 1., l2) * (1. - smoothstep(1., 1.6, l2));
+      float brainAmt = 1. - uBrain, sulci = smoothstep(.55, .92, aCrease);
+      vec3 grey = mix(vec3(.30, .32, .40), mix(vec3(.40, .43, .50), vec3(.30, .30, .85), sulci), brainAmt);
+      vCol = mix(grey, tc, e1);
+      vGlow = smoothstep(.7, 1., l2) * (1. - smoothstep(1., 1.6, l2)) + brainAmt * sulci * .35;
       vPay = smoothstep(2., 2.5, uP) * pow(max(0., sin(aLattice.y * .8 - uTime * 4.)), 40.);
-      vN = normalize(normalMatrix * nrm);
+      vN = normalize(nrm + aAxis * .15 * e2c); vW = p + local; vOrder = e2c;
+      vDim = (uSolo < -.5 || abs(type - uSolo) < .5) ? 1. : .1;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(p + local, 1.);
     }`,
   fragmentShader: /* glsl */`
-    varying vec3 vCol; varying vec3 vN; varying float vGlow; varying float vPay;
+    varying vec3 vCol; varying vec3 vN; varying vec3 vW; varying float vGlow, vPay, vOrder, vDim;
     void main() {
-      float l = .30 + .70 * abs(dot(normalize(vN), normalize(vec3(.4, .8, .5))));
-      vec3 col = vCol * l * .85 + vCol * vGlow * 2.2 + vec3(1., .78, .25) * vPay * .9;
-      gl_FragColor = vec4(col, 1.);
+      vec3 L = normalize(vec3(.4, .8, .5)), V = normalize(cameraPosition - vW), N = normalize(vN);
+      if (dot(N, V) < 0.) N = -N;
+      float l = .30 + .70 * abs(dot(N, L));
+      float spec = pow(max(dot(N, normalize(L + V)), 0.), 48.) * (.15 + .85 * vOrder);
+      float rim = pow(1. - max(dot(N, V), 0.), 3.) * .3 * vOrder;
+      vec3 col = vCol * l * .85 + vCol * vGlow * 2.2 + vec3(1., .78, .25) * vPay * .9 + vec3(spec * .8) + vCol * rim;
+      gl_FragColor = vec4(col * vDim, 1.);
     }`,
 });
 const mesh = new THREE.Mesh(geo, mat);
@@ -227,6 +243,15 @@ const gold = new THREE.Color('#FBBF24');
 const vault = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.09, 12, 64),
   new THREE.MeshBasicMaterial({ color: gold.clone().multiplyScalar(0.25) }));
 vault.position.y = 10.2; vault.rotation.x = Math.PI / 2; scene.add(vault);
+const vault2 = new THREE.Mesh(new THREE.TorusGeometry(1.08, 0.06, 10, 48), vault.material);
+vault2.position.copy(vault.position); scene.add(vault2);
+const SP = 48, spPos = new Float32Array(SP * 3), spDir = [];
+for (let i = 0; i < SP; i++) { const a = Math.random() * Math.PI * 2;
+  spDir.push([Math.cos(a), 0.3 + Math.random() * 0.9, Math.sin(a), Math.random(), 0.6 + Math.random() * 0.8]); }
+const spGeo = new THREE.BufferGeometry(); spGeo.setAttribute('position', new THREE.BufferAttribute(spPos, 3));
+const sparks = new THREE.Points(spGeo, new THREE.PointsMaterial({ color: gold, size: 0.16, transparent: true, opacity: 0,
+  blending: THREE.AdditiveBlending, depthWrite: false }));
+sparks.frustumCulled = false; scene.add(sparks);
 const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.16, 1, 16, 1, true),
   new THREE.MeshBasicMaterial({ color: gold, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
 scene.add(beam);
@@ -240,6 +265,12 @@ composer.addPass(bloom); composer.addPass(new OutputPass());
 
 // ---------- data binding ----------
 const legend = document.getElementById('legend');
+let solo = -1;
+legend.addEventListener('click', e => {
+  const r = e.target.closest('.row'); if (!r) return;
+  const t = +r.dataset.t; solo = solo === t ? -1 : t; uniforms.uSolo.value = solo;
+  legend.querySelectorAll('.row').forEach(x => x.classList.toggle('off', solo >= 0 && +x.dataset.t !== solo));
+});
 function load(names) {
   buckets = [[], [], [], []];
   names.forEach(n => buckets[classify(n)].push(n));
@@ -249,9 +280,9 @@ function load(names) {
   const sum = frac.reduce((a, b) => a + b, 0); frac = frac.map(f => f / sum);
   let i = 0, acc = 0;
   frac.forEach((f, t) => { acc += f; const end = t === 3 ? N : Math.round(acc * N); for (; i < end; i++) aMeta[i * 4] = t; });
-  metaAttr.needsUpdate = true;
+  metaAttr.needsUpdate = true; solo = -1; uniforms.uSolo.value = -1;
   legend.innerHTML = STAGES.map((s, t) =>
-    `<div><span><i style="background:${s.hex}"></i>${s.name}</span><b>${buckets[t].length.toLocaleString()}</b></div>`).join('')
+    `<div class="row" data-t="${t}" title="Click to isolate"><span><i style="background:${s.hex}"></i>${s.name}</span><b>${buckets[t].length.toLocaleString()}</b></div>`).join('')
     + `<div style="margin-top:6px;opacity:.55;font-size:11px"><span>${total.toLocaleString()} files</span></div>`;
 }
 load(demoFiles());
@@ -264,13 +295,15 @@ document.getElementById('dir').addEventListener('change', e => {
 // ---------- timeline ----------
 const scrub = document.getElementById('scrub'), phaseEl = document.getElementById('phase'),
       moneyEl = document.getElementById('money'), ticker = document.getElementById('ticker');
-let P = 0, playing = false, money = 0, brainT = -1, tickAcc = 0;
+let P = 0, playing = false, money = 0, brainT = -1, tickAcc = 0, goal = null;
+const bank = document.getElementById('bank'), stops = [...document.querySelectorAll('#stops button')];
+stops.forEach(b => b.onclick = () => { playing = false; brainT = -1; uniforms.uBrain.value = 1; goal = +b.dataset.p; });
 const setP = v => { P = Math.max(0, Math.min(3, v)); scrub.value = P; };
 function restart() { setP(0); money = 0; ticker.innerHTML = ''; playing = true; }
-scrub.addEventListener('input', () => { playing = false; P = +scrub.value; });
+scrub.addEventListener('input', () => { goal = null; playing = false; P = +scrub.value; });
 document.getElementById('go').onclick = () => { if (P >= 2.99) setP(0); playing = true; };
-document.getElementById('reset').onclick = () => { playing = false; brainT = -1; uniforms.uBrain.value = 1; setP(0); money = 0; ticker.innerHTML = ''; };
-document.getElementById('brain').onclick = () => { playing = false; setP(0); money = 0; ticker.innerHTML = ''; uniforms.uBrain.value = 0; brainT = 0; };
+document.getElementById('reset').onclick = () => { goal = null; playing = false; brainT = -1; uniforms.uBrain.value = 1; setP(0); money = 0; ticker.innerHTML = ''; };
+document.getElementById('brain').onclick = () => { goal = null; playing = false; setP(0); money = 0; ticker.innerHTML = ''; uniforms.uBrain.value = 0; brainT = 0; };
 addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); playing = !playing; } });
 
 function tick(dt) {
@@ -295,6 +328,9 @@ renderer.setAnimationLoop(() => {
     uniforms.uBrain.value = 1 - Math.pow(1 - k, 3);
     if (brainT > 3.0) { brainT = -1; playing = true; }
   }
+  if (playing) goal = null;
+  if (goal !== null) { const d = goal - P;
+    if (Math.abs(d) < 0.01) { setP(goal); goal = null; } else setP(P + Math.sign(d) * Math.min(Math.abs(d), dt * 1.1)); }
   if (playing) { setP(P + dt * (P < 2 ? 0.3 : 0.2)); if (P >= 3) playing = false; }
   uniforms.uP.value = P;
 
@@ -307,6 +343,16 @@ renderer.setAnimationLoop(() => {
   beam.material.opacity = pay * (0.7 + 0.3 * Math.sin(uniforms.uTime.value * 30));
   vault.material.color.copy(gold).multiplyScalar(0.25 + pay * 0.8);
   vault.rotation.z += dt * (0.3 + pay * 2);
+  vault2.rotation.x += dt * (0.4 + pay * 2.2); vault2.rotation.y -= dt * (0.25 + pay * 1.4);
+  const T = uniforms.uTime.value;
+  for (let i = 0; i < SP; i++) { const d = spDir[i], life = (T * d[4] + d[3]) % 1, r = 1.5 + life * 2.6;
+    spPos[i * 3] = d[0] * r; spPos[i * 3 + 1] = vault.position.y + d[1] * life * 2.2 - life * life * 2.4; spPos[i * 3 + 2] = d[2] * r; }
+  spGeo.attributes.position.needsUpdate = true; sparks.material.opacity = pay > 0.5 ? pay : 0;
+  bank.classList.toggle('hot', pay > 0.5);
+  stops.forEach((b, i) => b.classList.toggle('on', Math.round(P) === i));
+  // lift the view during the payout so the vault sits clear of the top edge
+  const dy = (1.5 + 1.5 * THREE.MathUtils.smoothstep(P, 1.8, 2.6) - controls.target.y) * Math.min(1, dt * 3);
+  controls.target.y += dy; camera.position.y += dy;
   if (pay > 0.5 && (playing || P >= 2.99)) money += dt * 4200 * pay;
   moneyEl.textContent = '$' + Math.floor(money).toLocaleString();
 
