@@ -14,11 +14,11 @@
   #title { position: fixed; left: 24px; top: 20px; pointer-events: none; }
   #title h1 { margin: 0; font-size: 20px; letter-spacing: .28em; font-weight: 600; }
   #phase { margin-top: 6px; font-size: 12px; letter-spacing: .22em; color: var(--violet); }
-  #bank { position: fixed; right: 24px; top: 20px; padding: clamp(10px, .9vw, 16px) clamp(18px, 1.6vw, 28px); text-align: right; }
+  #bank { position: fixed; right: 24px; top: 20px; padding: clamp(10px, .9vw, 22px) clamp(18px, 1.6vw, 38px); text-align: right; }
   #bank { transition: border-color .4s, box-shadow .4s; }
   #bank.hot { border-color: rgba(52, 211, 153, .75); box-shadow: 0 0 24px rgba(16, 185, 129, .28); }
-  #bank small { display: block; font-size: clamp(10px, .8vw, 14px); letter-spacing: .2em; opacity: .6; }
-  #money { font-size: clamp(24px, 2vw, 36px); font-variant-numeric: tabular-nums; color: var(--emerald); font-weight: 600; }
+  #bank small { display: block; font-size: clamp(10px, .8vw, 18px); letter-spacing: .2em; opacity: .6; }
+  #money { font-size: clamp(24px, 2.2vw, 52px); font-variant-numeric: tabular-nums; color: var(--emerald); font-weight: 600; }
   #dock { position: fixed; left: 0; right: 0; bottom: 0; padding: 0 24px 22px; display: flex; flex-direction: column;
     gap: 12px; pointer-events: none; box-sizing: border-box; }
   #dock .glass { pointer-events: auto; }
@@ -29,7 +29,7 @@
   #legend .row { cursor: pointer; transition: opacity .2s; } #legend .row.off { opacity: .3; }
   #legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 8px; }
   #legend b { font-variant-numeric: tabular-nums; font-weight: 500; opacity: .8; }
-  #ticker { width: clamp(240px, 26vw, 460px); font: clamp(11px, .85vw, 15px)/1.65 ui-monospace, Consolas, monospace;
+  #ticker { width: clamp(240px, 27vw, 640px); font: clamp(11px, .9vw, 20px)/1.65 ui-monospace, Consolas, monospace;
     height: calc(6 * 1.65em + 20px); overflow: hidden; padding: 10px 14px; box-sizing: border-box; flex: none; }
   #ticker div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .85; }
   #bar { align-self: center; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px;
