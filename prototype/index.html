@@ -14,21 +14,26 @@
   #title { position: fixed; left: 24px; top: 20px; pointer-events: none; }
   #title h1 { margin: 0; font-size: 20px; letter-spacing: .28em; font-weight: 600; }
   #phase { margin-top: 6px; font-size: 12px; letter-spacing: .22em; color: var(--violet); }
-  #bank { position: fixed; right: 24px; top: 20px; padding: 10px 18px; text-align: right; }
+  #bank { position: fixed; right: 24px; top: 20px; padding: clamp(10px, .9vw, 16px) clamp(18px, 1.6vw, 28px); text-align: right; }
   #bank { transition: border-color .4s, box-shadow .4s; }
   #bank.hot { border-color: rgba(52, 211, 153, .75); box-shadow: 0 0 24px rgba(16, 185, 129, .28); }
-  #bank small { display: block; font-size: 10px; letter-spacing: .2em; opacity: .6; }
-  #money { font-size: 24px; font-variant-numeric: tabular-nums; color: var(--emerald); font-weight: 600; }
-  #legend { position: fixed; left: 24px; bottom: 120px; padding: 12px 16px; min-width: 190px; }
+  #bank small { display: block; font-size: clamp(10px, .8vw, 14px); letter-spacing: .2em; opacity: .6; }
+  #money { font-size: clamp(24px, 2vw, 36px); font-variant-numeric: tabular-nums; color: var(--emerald); font-weight: 600; }
+  #dock { position: fixed; left: 0; right: 0; bottom: 0; padding: 0 24px 22px; display: flex; flex-direction: column;
+    gap: 12px; pointer-events: none; box-sizing: border-box; }
+  #dock .glass { pointer-events: auto; }
+  #side { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; pointer-events: none; }
+  #legend { padding: 12px 16px; width: 190px; flex: none; box-sizing: border-box; }
+  #legend span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #legend div { display: flex; justify-content: space-between; gap: 18px; padding: 2px 0; }
   #legend .row { cursor: pointer; transition: opacity .2s; } #legend .row.off { opacity: .3; }
   #legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 8px; }
   #legend b { font-variant-numeric: tabular-nums; font-weight: 500; opacity: .8; }
-  #ticker { position: fixed; right: 24px; bottom: 120px; width: 300px; height: 132px; overflow: hidden;
-    padding: 10px 14px; font: 12px/1.65 ui-monospace, Consolas, monospace; box-sizing: border-box; }
+  #ticker { width: clamp(240px, 26vw, 460px); font: clamp(11px, .85vw, 15px)/1.65 ui-monospace, Consolas, monospace;
+    height: calc(6 * 1.65em + 20px); overflow: hidden; padding: 10px 14px; box-sizing: border-box; flex: none; }
   #ticker div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .85; }
-  #bar { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); padding: 12px 16px;
-    display: flex; flex-direction: column; gap: 10px; width: min(760px, calc(100vw - 32px)); box-sizing: border-box; }
+  #bar { align-self: center; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px;
+    width: min(760px, 100%); box-sizing: border-box; }
   #scrubrow { display: flex; align-items: center; gap: 12px; font-size: 11px; letter-spacing: .18em; }
   #scrub { flex: 1; accent-color: var(--violet); }
   #stops { display: flex; justify-content: space-between; margin: -4px 52px 0; }
@@ -39,7 +44,16 @@
     background: rgba(139, 92, 246, .16); border: 1px solid rgba(139, 92, 246, .5); border-radius: 9px; padding: 8px 14px; }
   button:hover, label.btn:hover { background: rgba(139, 92, 246, .34); }
   button.primary { background: var(--violet); color: #0b0a18; font-weight: 700; border-color: transparent; }
-  @media (max-width: 720px) { #legend, #ticker { display: none; } #title h1 { font-size: 13px; letter-spacing: .14em; } #phase { font-size: 10px; letter-spacing: .1em; max-width: 45vw; } }
+  @media (max-width: 720px) {
+    #dock { padding: 0 12px 12px; gap: 8px; }
+    #side { flex-direction: column; align-items: stretch; gap: 8px; }
+    #legend { width: auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 14px; padding: 8px 12px; font-size: 12px; }
+    #legend div { gap: 8px; } #legend div:last-child { display: none; }
+    #ticker { width: auto; height: calc(2 * 1.65em + 16px); padding: 8px 12px; order: -1; } #ticker div:nth-child(n+3) { display: none; }
+    #stops { margin: -4px 0 0; }
+    #title h1 { font-size: 13px; letter-spacing: .14em; } #phase { font-size: 10px; letter-spacing: .1em; max-width: 45vw; }
+  }
+  @media (max-height: 540px) { #side { display: none; } }
 </style>
 <script type="importmap">
 { "imports": {
@@ -51,8 +65,8 @@
 <body>
 <div id="title"><h1>THE ORDER ENGINE</h1><div id="phase">ENTROPY</div></div>
 <div id="bank" class="glass"><small>IN THE BANK</small><span id="money">$0</span></div>
-<div id="legend" class="glass"></div>
-<div id="ticker" class="glass"></div>
+<div id="dock">
+<div id="side"><div id="legend" class="glass"></div><div id="ticker" class="glass"></div></div>
 <div id="bar" class="glass">
   <div id="scrubrow"><span>CHAOS</span><input id="scrub" type="range" min="0" max="3" step="0.001" value="0"><span>ORDER</span></div>
   <div id="stops"><button data-p="0">ENTROPY</button><button data-p="1">RINGS</button><button data-p="2">LATTICE</button><button data-p="3">PAYOUT</button></div>
@@ -62,6 +76,7 @@
     <button id="brain">ABSORB BILL'S BRAIN</button>
     <label class="btn">USE MY FILES<input id="dir" type="file" webkitdirectory multiple hidden></label>
   </div>
+</div>
 </div>
 
 <script type="module">
