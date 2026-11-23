@@ -1,0 +1,20 @@
+# Publish only the prototype, README, LICENSE and this file.
+/*
+!/.gitignore
+!/README.md
+!/LICENSE
+!/prototype/
+
+# Never publish
+node_modules/
+dist/
+build/
+*.log
+.env
+.env.*
+*.pem
+*.key
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

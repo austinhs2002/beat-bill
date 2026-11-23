@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Order Engine</title>
+<style>
+  :root { --violet: #8B5CF6; --gold: #FBBF24; --emerald: #34D399; --ink: #E2E8F0; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #05050B; color: var(--ink);
+    font: 14px/1.4 ui-sans-serif, system-ui, "Segoe UI", sans-serif; }
+  canvas { position: fixed; inset: 0; display: block; }
+  .glass { background: rgba(9, 8, 20, .72); backdrop-filter: blur(16px);
+    border: 1px solid rgba(139, 92, 246, .35); border-radius: 14px; }
+  #title { position: fixed; left: 24px; top: 20px; pointer-events: none; }
+  #title h1 { margin: 0; font-size: 20px; letter-spacing: .28em; font-weight: 600; }
+  #phase { margin-top: 6px; font-size: 12px; letter-spacing: .22em; color: var(--violet); }
+  #bank { position: fixed; right: 24px; top: 20px; padding: 10px 18px; text-align: right; }
+  #bank small { display: block; font-size: 10px; letter-spacing: .2em; opacity: .6; }
+  #money { font-size: 24px; font-variant-numeric: tabular-nums; color: var(--emerald); font-weight: 600; }
+  #legend { position: fixed; left: 24px; bottom: 120px; padding: 12px 16px; min-width: 190px; }
+  #legend div { display: flex; justify-content: space-between; gap: 18px; padding: 2px 0; }
+  #legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 8px; }
+  #legend b { font-variant-numeric: tabular-nums; font-weight: 500; opacity: .8; }
+  #ticker { position: fixed; right: 24px; bottom: 120px; width: 300px; height: 132px; overflow: hidden;
+    padding: 10px 14px; font: 12px/1.65 ui-monospace, Consolas, monospace; box-sizing: border-box; }
+  #ticker div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .85; }
+  #bar { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); padding: 12px 16px;
+    display: flex; flex-direction: column; gap: 10px; width: min(760px, calc(100vw - 32px)); box-sizing: border-box; }
+  #scrubrow { display: flex; align-items: center; gap: 12px; font-size: 11px; letter-spacing: .18em; }
+  #scrub { flex: 1; accent-color: var(--violet); }
+  #btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  button, label.btn { font: inherit; font-size: 12px; letter-spacing: .08em; color: var(--ink); cursor: pointer;
+    background: rgba(139, 92, 246, .16); border: 1px solid rgba(139, 92, 246, .5); border-radius: 9px; padding: 8px 14px; }
+  button:hover, label.btn:hover { background: rgba(139, 92, 246, .34); }
+  button.primary { background: var(--violet); color: #0b0a18; font-weight: 700; border-color: transparent; }
+  @media (max-width: 720px) { #legend, #ticker { display: none; } #title h1 { font-size: 13px; letter-spacing: .14em; } #phase { font-size: 10px; letter-spacing: .1em; max-width: 45vw; } }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="title"><h1>THE ORDER ENGINE</h1><div id="phase">ENTROPY</div></div>
+<div id="bank" class="glass"><small>IN THE BANK</small><span id="money">$0</span></div>
+<div id="legend" class="glass"></div>
+<div id="ticker" class="glass"></div>
+<div id="bar" class="glass">
+  <div id="scrubrow"><span>CHAOS</span><input id="scrub" type="range" min="0" max="3" step="0.001" value="0"><span>ORDER</span></div>
+  <div id="btns">
+    <button class="primary" id="go">ORGANIZE</button>
+    <button id="reset">BACK TO CHAOS</button>
+    <button id="brain">ABSORB BILL'S BRAIN</button>
+    <label class="btn">USE MY FILES<input id="dir" type="file" webkitdirectory multiple hidden></label>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const N = 6000;
+const STAGES = [
+  { name: 'Concept', hex: '#818CF8' },
+  { name: 'Spec',    hex: '#A855F7' },
+  { name: 'Build',   hex: '#38BDF8' },
+  { name: 'Revenue', hex: '#FBBF24' },
+];
+
+// ---------- file names: the particles are files ----------
+const EXT = {
+  2: ['js','ts','tsx','jsx','py','cpp','h','c','cs','go','rs','java','lua','json','yml','yaml','html','css','sh','ps1','sql','toml'],
+  1: ['pdf','doc','docx','xls','xlsx','ppt','pptx','fig','drawio'],
+};
+function classify(name) {
+  const n = name.toLowerCase();
+  if (/(invoice|receipt|stripe|payout|payment|bank|tax|revenue|sales)/.test(n)) return 3;
+  const ext = n.includes('.') ? n.split('.').pop() : '';
+  if (EXT[2].includes(ext)) return 2;
+  if (EXT[1].includes(ext) || /(spec|plan|brief|requirements|roadmap)/.test(n)) return 1;
+  return 0;
+}
+function demoFiles() {
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const pools = [
+    () => `${pick(['idea','spark','note','sketch','voice-memo','screenshot','brainstorm'])}_${Math.floor(Math.random()*900+100)}.${pick(['md','txt','png','m4a'])}`,
+    () => `${pick(['spec','brief','roadmap','requirements','plan'])}_${pick(['v1','v2','final','FINAL2'])}.${pick(['pdf','docx','xlsx'])}`,
+    () => `${pick(['api','auth','checkout','worker','index','deploy','schema','ci'])}.${pick(['ts','py','yml','sql','tsx'])}`,
+    () => `${pick(['invoice','stripe_payout','receipt','bank_statement'])}_${Math.floor(Math.random()*9000+1000)}.${pick(['pdf','csv'])}`,
+  ];
+  const weights = [0.38, 0.24, 0.26, 0.12], out = [];
+  for (let i = 0; i < 900; i++) {
+    let r = Math.random(), t = 0;
+    while (r > weights[t]) { r -= weights[t]; t++; }
+    out.push(pools[Math.min(t, 3)]());
+  }
+  return out;
+}
+let buckets = [[], [], [], []];
+
+// ---------- scene ----------
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+document.body.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#05050B');
+scene.fog = new THREE.FogExp2(0x090814, 0.014);
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 200);
+camera.position.set(0, 3, 23);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 1.5, 0);
+controls.enableDamping = true; controls.autoRotate = true; controls.autoRotateSpeed = 0.5;
+controls.minDistance = 8; controls.maxDistance = 45;
+
+// ---------- per-instance data ----------
+const geo = new THREE.InstancedBufferGeometry();
+const card = new THREE.BoxGeometry(0.2, 0.26, 0.03);
+geo.index = card.index; geo.attributes.position = card.attributes.position; geo.attributes.normal = card.attributes.normal;
+geo.instanceCount = N;
+
+// lattice: N nearest grid points of an octahedron (a gem), sorted bottom to top
+const S = 0.3, pts = [];
+for (let i = -22; i <= 22; i++) for (let j = -22; j <= 22; j++) for (let k = -22; k <= 22; k++) {
+  const d = Math.abs(i) + Math.abs(j) + Math.abs(k);
+  if (d <= 19) pts.push([i, j, k, d + Math.random() * 0.01]);
+}
+pts.sort((a, b) => a[3] - b[3]); pts.length = N;
+pts.sort((a, b) => a[1] - b[1] || Math.atan2(a[2], a[0]) - Math.atan2(b[2], b[0]));
+
+const aChaos = new Float32Array(N * 3), aLattice = new Float32Array(N * 3), aBrain = new Float32Array(N * 3),
+      aAxis = new Float32Array(N * 3), aMeta = new Float32Array(N * 4);
+const rnd = (a = 1) => (Math.random() * 2 - 1) * a;
+for (let i = 0; i < N; i++) {
+  // chaos cloud
+  const u = new THREE.Vector3(rnd(), rnd(), rnd()).normalize().multiplyScalar(3 + Math.pow(Math.random(), 0.6) * 9);
+  aChaos.set([u.x * 1.25, u.y * 0.7 + 1.5, u.z], i * 3);
+  aLattice.set([pts[i][0] * S, pts[i][1] * S + 1.2, pts[i][2] * S], i * 3);
+  // a wrinkly two-lobed blob, for the "absorb" gag
+  const b = new THREE.Vector3(rnd(), rnd(), rnd()).normalize();
+  const w = 1 + 0.09 * Math.sin(9 * b.y + 3 * Math.sin(7 * b.z)) + 0.05 * Math.sin(13 * b.x * b.z);
+  const side = Math.sign(b.x) || 1;
+  aBrain.set([b.x * 2.5 * w + side * 0.28, b.y * 2.3 * w + 1.5, b.z * 3.3 * w], i * 3);
+  const ax = new THREE.Vector3(rnd(), rnd(), rnd()).normalize();
+  aAxis.set([ax.x, ax.y, ax.z], i * 3);
+  aMeta.set([0, Math.random(), Math.random() * Math.PI * 2, rnd()], i * 4);
+}
+geo.setAttribute('aChaos', new THREE.InstancedBufferAttribute(aChaos, 3));
+geo.setAttribute('aLattice', new THREE.InstancedBufferAttribute(aLattice, 3));
+geo.setAttribute('aBrain', new THREE.InstancedBufferAttribute(aBrain, 3));
+geo.setAttribute('aAxis', new THREE.InstancedBufferAttribute(aAxis, 3));
+const metaAttr = new THREE.InstancedBufferAttribute(aMeta, 4);
+geo.setAttribute('aMeta', metaAttr);
+
+const uniforms = {
+  uTime: { value: 0 }, uP: { value: 0 }, uBrain: { value: 1 },
+  uCols: { value: STAGES.map(s => new THREE.Color(s.hex)) },
+};
+const mat = new THREE.ShaderMaterial({
+  uniforms,
+  vertexShader: /* glsl */`
+    attribute vec3 aChaos, aLattice, aBrain, aAxis; attribute vec4 aMeta;
+    uniform float uTime, uP, uBrain; uniform vec3 uCols[4];
+    varying vec3 vCol; varying vec3 vN; varying float vGlow; varying float vPay;
+    mat3 rot(vec3 a, float t) { float c = cos(t), s = sin(t), o = 1. - c;
+      return mat3(o*a.x*a.x+c, o*a.x*a.y+a.z*s, o*a.z*a.x-a.y*s,
+                  o*a.x*a.y-a.z*s, o*a.y*a.y+c, o*a.y*a.z+a.x*s,
+                  o*a.z*a.x+a.y*s, o*a.y*a.z-a.x*s, o*a.z*a.z+c); }
+    float ease(float x) { x = clamp(x, 0., 1.); return x*x*(3. - 2.*x); }
+    float back(float x) { x = clamp(x, 0., 1.); float k = x - 1.; return 1. + 2.70158*k*k*k + 1.70158*k*k; }
+    void main() {
+      float type = aMeta.x, seed = aMeta.y;
+      float l2 = (uP - 1.) * 1.5 - seed * .5;
+      float e1 = ease(uP * 1.5 - seed * .5), e2 = back(l2), e2c = clamp(e2, 0., 1.);
+      const vec3 Y = vec3(0., 1., 0.);
+
+      // 0: unsorted turbulence (or a borrowed brain)
+      vec3 c = aChaos;
+      c += .7 * vec3(sin(uTime*.7 + c.y*.8 + seed*6.), cos(uTime*.6 + c.z*.7 + seed*4.), sin(uTime*.5 + c.x*.9));
+      c = rot(Y, uTime * .06 * (.5 + seed)) * (c - vec3(0., 1.5, 0.)) + vec3(0., 1.5, 0.);
+      c = mix(aBrain, c, uBrain);
+
+      // 1: sorting rings, one lane per kind
+      float dir = mod(type, 2.) < .5 ? 1. : -1.;
+      float r = 3.4 + type * 1.25 + aMeta.w * .32;
+      float ang = aMeta.z + uTime * (.55 - type * .09) * dir;
+      vec3 rp = vec3(cos(ang) * r, (fract(seed * 7.31) - .5) * .5, sin(ang) * r);
+      rp = rot(vec3(1., 0., 0.), (type - 1.5) * .42) * rot(vec3(0., 0., 1.), (type - 1.5) * .2) * rp + vec3(0., 1.5, 0.);
+
+      // 2: everything where it belongs
+      mat3 spin = rot(Y, uTime * .18);
+      vec3 lp = spin * (aLattice - vec3(0., 1.2, 0.)) + vec3(0., 1.2, 0.);
+
+      vec3 p = mix(mix(c, rp, e1), lp, e2);
+      float tumble = (1. - e2c) * (1. - .55 * e1) * mix(.15, 1., uBrain);
+      vec3 local = rot(normalize(aAxis), tumble * (uTime * (1. + seed * 2.) + seed * 40.)) * position;
+      vec3 nrm = rot(normalize(aAxis), tumble * (uTime * (1. + seed * 2.) + seed * 40.)) * normal;
+      local = mix(local, spin * local, e2c); nrm = mix(nrm, spin * nrm, e2c);
+
+      vec3 tc = type < .5 ? uCols[0] : type < 1.5 ? uCols[1] : type < 2.5 ? uCols[2] : uCols[3];
+      vCol = mix(vec3(.30, .32, .40), tc, e1);
+      vGlow = smoothstep(.7, 1., l2) * (1. - smoothstep(1., 1.6, l2));
+      vPay = smoothstep(2., 2.5, uP) * pow(max(0., sin(aLattice.y * .8 - uTime * 4.)), 40.);
+      vN = normalize(normalMatrix * nrm);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(p + local, 1.);
+    }`,
+  fragmentShader: /* glsl */`
+    varying vec3 vCol; varying vec3 vN; varying float vGlow; varying float vPay;
+    void main() {
+      float l = .30 + .70 * abs(dot(normalize(vN), normalize(vec3(.4, .8, .5))));
+      vec3 col = vCol * l * .85 + vCol * vGlow * 2.2 + vec3(1., .78, .25) * vPay * .9;
+      gl_FragColor = vec4(col, 1.);
+    }`,
+});
+const mesh = new THREE.Mesh(geo, mat);
+mesh.frustumCulled = false;
+scene.add(mesh);
+
+// vault + payout beam
+const gold = new THREE.Color('#FBBF24');
+const vault = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.09, 12, 64),
+  new THREE.MeshBasicMaterial({ color: gold.clone().multiplyScalar(0.25) }));
+vault.position.y = 10.2; vault.rotation.x = Math.PI / 2; scene.add(vault);
+const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.16, 1, 16, 1, true),
+  new THREE.MeshBasicMaterial({ color: gold, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+scene.add(beam);
+const APEX = 1.2 + pts[N - 1][1] * S + 0.15;
+
+// post
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth / 2, innerHeight / 2), 0.85, 0.6, 0.72);
+composer.addPass(bloom); composer.addPass(new OutputPass());
+
+// ---------- data binding ----------
+const legend = document.getElementById('legend');
+function load(names) {
+  buckets = [[], [], [], []];
+  names.forEach(n => buckets[classify(n)].push(n));
+  const total = names.length || 1;
+  // each kind gets a band of the gem, bottom (ideas) to apex (money); minimum 4% so every band is visible
+  let frac = buckets.map(b => Math.max(0.04, b.length / total));
+  const sum = frac.reduce((a, b) => a + b, 0); frac = frac.map(f => f / sum);
+  let i = 0, acc = 0;
+  frac.forEach((f, t) => { acc += f; const end = t === 3 ? N : Math.round(acc * N); for (; i < end; i++) aMeta[i * 4] = t; });
+  metaAttr.needsUpdate = true;
+  legend.innerHTML = STAGES.map((s, t) =>
+    `<div><span><i style="background:${s.hex}"></i>${s.name}</span><b>${buckets[t].length.toLocaleString()}</b></div>`).join('')
+    + `<div style="margin-top:6px;opacity:.55;font-size:11px"><span>${total.toLocaleString()} files</span></div>`;
+}
+load(demoFiles());
+
+document.getElementById('dir').addEventListener('change', e => {
+  const names = [...e.target.files].map(f => f.name);   // names only; nothing leaves this page
+  if (names.length) { load(names); restart(); }
+});
+
+// ---------- timeline ----------
+const scrub = document.getElementById('scrub'), phaseEl = document.getElementById('phase'),
+      moneyEl = document.getElementById('money'), ticker = document.getElementById('ticker');
+let P = 0, playing = false, money = 0, brainT = -1, tickAcc = 0;
+const setP = v => { P = Math.max(0, Math.min(3, v)); scrub.value = P; };
+function restart() { setP(0); money = 0; ticker.innerHTML = ''; playing = true; }
+scrub.addEventListener('input', () => { playing = false; P = +scrub.value; });
+document.getElementById('go').onclick = () => { if (P >= 2.99) setP(0); playing = true; };
+document.getElementById('reset').onclick = () => { playing = false; brainT = -1; uniforms.uBrain.value = 1; setP(0); money = 0; ticker.innerHTML = ''; };
+document.getElementById('brain').onclick = () => { playing = false; setP(0); money = 0; ticker.innerHTML = ''; uniforms.uBrain.value = 0; brainT = 0; };
+addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); playing = !playing; } });
+
+function tick(dt) {
+  const kinds = P < 1 ? [0, 1, 2, 3] : P < 2 ? [0, 1, 2, 3] : [3];
+  const t = kinds[Math.floor(Math.random() * kinds.length)], b = buckets[t];
+  if (!b.length) return;
+  const row = document.createElement('div');
+  const verb = P < 1 ? 'sorted' : P < 2 ? 'placed' : 'paid';
+  row.innerHTML = `<span style="color:${STAGES[t].hex}">&#10003; ${verb}</span> ${b[Math.floor(Math.random() * b.length)].replace(/[<&]/g, '')} <span style="opacity:.5">&rarr; ${STAGES[t].name}</span>`;
+  ticker.prepend(row);
+  while (ticker.children.length > 6) ticker.lastChild.remove();
+}
+
+const clock = new THREE.Clock();
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  uniforms.uTime.value += dt;
+
+  if (brainT >= 0) {                       // hold the brain, shatter it, then organize the pieces
+    brainT += dt;
+    const k = Math.max(0, Math.min(1, (brainT - 1.6) / 0.9));
+    uniforms.uBrain.value = 1 - Math.pow(1 - k, 3);
+    if (brainT > 3.0) { brainT = -1; playing = true; }
+  }
+  if (playing) { setP(P + dt * (P < 2 ? 0.3 : 0.2)); if (P >= 3) playing = false; }
+  uniforms.uP.value = P;
+
+  phaseEl.textContent = brainT >= 0 ? (brainT < 1.6 ? 'LEGACY BRAIN DETECTED' : 'ABSORBING') :
+    P < 0.02 ? 'ENTROPY' : P < 1 ? 'SORTING BY KIND' : P < 2 ? 'EVERYTHING WHERE IT BELONGS' : 'PAYING OUT';
+
+  const pay = THREE.MathUtils.smoothstep(P, 2.05, 2.6);
+  const len = (vault.position.y - APEX) * pay;
+  beam.scale.y = Math.max(len, 0.001); beam.position.y = APEX + len / 2;
+  beam.material.opacity = pay * (0.7 + 0.3 * Math.sin(uniforms.uTime.value * 30));
+  vault.material.color.copy(gold).multiplyScalar(0.25 + pay * 0.8);
+  vault.rotation.z += dt * (0.3 + pay * 2);
+  if (pay > 0.5 && (playing || P >= 2.99)) money += dt * 4200 * pay;
+  moneyEl.textContent = '$' + Math.floor(money).toLocaleString();
+
+  if (P > 0.05 && (playing || pay > 0.5)) { tickAcc += dt; if (tickAcc > 0.16) { tickAcc = 0; tick(); } }
+
+  controls.update();
+  composer.render();
+});
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight);
+});
+window.__engine = { uniforms, setP, renderer };
+</script>
+</body>
+</html>
