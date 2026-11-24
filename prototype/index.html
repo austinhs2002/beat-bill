@@ -550,13 +550,16 @@ const NEWS = [
    ['NPQ', 'In uncertain times, some find comfort in a cone']],
 ];
 const SHOUTS = [
-  ["THEY'RE RAISING RATES ON YOUR FOLDERS! STACK IT! STACK IT ALL!", "Chat, we are so stacking right now. Stack era."],
-  ["THE SHIPMENTS ARE REAL, FOLKS! OPEN THE PIPELINE!", "Ship it. Pipeline. This is not even a debate."],
-  ["IT'S GONE GLOBAL! THE NETWORK, PEOPLE, THE NETWORK!", "We're viral, chat. Network mode. Obviously."],
-  ["IT'S ALL COLLAPSING INTO ONE BIG FUNNEL! I TOLD YOU!", "Everything's crashing. Funnel it. Cope."],
+  ["STACK STACK NOW!", "Stack it, chat!"],
+  ["PIPELINE! PIPELINE! GO!", "Pipeline, chat. Now."],
+  ["NETWORK NOW! NETWORK!", "Network now, chat."],
+  ["FUNNEL IT! FUNNEL!", "Funnel it, chat."],
 ];
 // What the commentators say between market shifts. None of it changes which flow pays best.
 const FILLERS = [[
+  "THEY'RE PUTTING CHEMICALS IN THE WATER THAT TURN THE FROGS GAY! ...AND HONESTLY, THE FROGS HAVE NEVER LOOKED BETTER!",
+  "THE WATER IS MAKING THE FROGS GAY, THE FROGS ARE MAKING THE SPREADSHEETS FABULOUS, AND I'M JUST ASKING QUESTIONS!",
+  "I DRANK THE WATER MYSELF TO TEST IT. NOW I HAVE OPINIONS ABOUT CURTAINS. THE FROGS WERE RIGHT!",
   "THEY'RE PUTTING CHEMICALS IN THE WATER AND THE FROGS ARE GETTING FANCY!",
   "I SAW A FROG IN A TINY MONOCLE. YOU CAN'T UNSEE THAT, FOLKS!",
   "BUY MY BRAIN-FORCE SOUP! IT FIXES SPREADSHEETS AND ONE OTHER THING!",
@@ -589,9 +592,9 @@ const FILLERS = [[
   "Hold on, my other headset is better. Sorry, chat.",
   "Doing the thing where I act calm and then yell for no reason.",
   "Another day, another unsorted downloads folder. We keep going.",
-  "Can we get a 'Kyle was right' in the chat? Thank you."]];
+  "Can we get a 'Brick was right' in the chat? Thank you."]];
 const FACES = [
-  ['BRICK THUNDER · RANT RADIO', `<svg viewBox="0 0 120 120"><circle cx="60" cy="66" r="44" fill="#E2553F"/>
+  ['AXEL JOHNSON · RANT RADIO', `<svg viewBox="0 0 120 120"><circle cx="60" cy="66" r="44" fill="#E2553F"/>
     <path d="M20 52 Q60 4 100 52 Q60 26 20 52Z" fill="#5b3a29"/>
     <path d="M32 50 L54 59 M88 50 L66 59" stroke="#3b1d14" stroke-width="6" stroke-linecap="round"/>
     <circle cx="46" cy="66" r="6" fill="#fff"/><circle cx="74" cy="66" r="6" fill="#fff"/>
@@ -600,7 +603,7 @@ const FACES = [
     <path d="M104 56 q9 9 2 17 q-8 -6 -2 -17Z" fill="#7dd3fc"/>
     <ellipse cx="22" cy="106" rx="14" ry="10" fill="#4ade80"/><circle cx="14" cy="97" r="4.5" fill="#4ade80"/><circle cx="28" cy="97" r="4.5" fill="#4ade80"/><circle cx="14" cy="97" r="1.8" fill="#111"/><circle cx="28" cy="97" r="1.8" fill="#111"/>
     <rect x="2" y="78" width="16" height="26" rx="8" fill="#475569"/><path d="M10 104 V118" stroke="#475569" stroke-width="4"/></svg>`],
-  ['KYLE · LIVE', `<svg viewBox="0 0 120 120"><path d="M28 120 L44 96 H76 L92 120Z" fill="#1e293b"/><path d="M56 98 h8 l3 22 h-14z" fill="#b91c1c"/>
+  ['BRICK FENTUS · LIVE', `<svg viewBox="0 0 120 120"><path d="M28 120 L44 96 H76 L92 120Z" fill="#1e293b"/><path d="M56 98 h8 l3 22 h-14z" fill="#b91c1c"/>
     <ellipse cx="60" cy="58" rx="30" ry="38" fill="#F1D3B8"/>
     <path d="M30 52 Q32 14 70 17 Q96 22 90 54 Q82 30 52 34 Q38 36 30 52Z" fill="#B58A5C"/>
     <path d="M40 55 h14 M66 53 h14" stroke="#2b2118" stroke-width="3" stroke-linecap="round"/>
@@ -626,7 +629,10 @@ function shout(cue) {
   shoutEl.classList.remove('on'); shoutEl.classList.toggle('right', who === 1); void shoutEl.offsetWidth;
   faceEl.innerHTML = FACES[who][1];
   bubbleEl.innerHTML = '<small>' + FACES[who][0] + '</small>' + (cue ? SHOUTS[regime][who] : pick(FILLERS[who]));
-  shoutEl.classList.add('on'); shoutT = cue ? 3.6 : 2.8;
+  shoutEl.classList.add('on');
+  const words = (cue ? SHOUTS[regime][who] : bubbleEl.textContent.replace(FACES[who][0], '')).trim().split(/\s+/).length;
+  shoutT = Math.max(2.2, 1.5 * (0.6 + words / 3) + (/FROG/i.test(bubbleEl.textContent) ? 1.5 : 0));   // frog rants linger for the laugh
+  fillT = shoutT + 0.8 + Math.random() * 1.7;
 }
 function flashNews() { flashQ.push(NEWS[regime][Math.floor(Math.random() * 3)][1]); }
 
@@ -689,8 +695,8 @@ renderer.setAnimationLoop(() => {
   const live = pay > 0.5 && (playing || P >= 2.99), mult = form === regime ? 3 : 0.6;
   if (live) {
     regimeT += dt; fillT -= dt;
-    if (regimeT > regimeLen) { regime = (regime + 1 + Math.floor(Math.random() * 3)) % 4; regimeT = 0; regimeLen = 6 + Math.random() * 4; flashNews(); shout(true); fillT = 3 + Math.random() * 2; }
-    if (fillT <= 0 && shoutT <= 0) { shout(false); fillT = 3 + Math.random() * 3; }
+    if (regimeT > regimeLen) { regime = (regime + 1 + Math.floor(Math.random() * 3)) % 4; regimeT = 0; regimeLen = 6 + Math.random() * 4; flashNews(); shout(true); }
+    if (fillT <= 0 && shoutT <= 0) { shout(false); }
     money += dt * 1400 * pay * mult;
   }
   if (shoutT > 0) { shoutT -= dt; if (shoutT <= 0 || !live) { shoutT = 0; shoutEl.classList.remove('on'); } }
@@ -705,7 +711,7 @@ renderer.setAnimationLoop(() => {
 });
 
 addEventListener('resize', applySize);
-window.__engine = { uniforms, setP, renderer, setForm, setRegime: r => { regime = r; regimeT = 0; flashNews(); shout(true); }, stats: () => ({ lowPower: LOW_POWER, renderScale, qStep, width: renderer.domElement.width, height: renderer.domElement.height }) };
+window.__engine = { uniforms, setP, renderer, setForm, shout, dur: () => shoutT, setRegime: r => { regime = r; regimeT = 0; flashNews(); shout(true); }, stats: () => ({ lowPower: LOW_POWER, renderScale, qStep, width: renderer.domElement.width, height: renderer.domElement.height }) };
 </script>
 </body>
 </html>
