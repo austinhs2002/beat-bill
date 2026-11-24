@@ -53,7 +53,7 @@
   #news.on { opacity: 1; }
   #news b { color: var(--gold); letter-spacing: .12em; margin-right: 10px; font-size: .85em; }
   #flows { --lift: clamp(12px, 1.5vw, 24px); display: flex; gap: clamp(8px, 1vw, 18px); justify-content: center; align-items: flex-end;
-    flex: 0 1 auto; padding-top: var(--lift); pointer-events: none; }
+    align-self: center; max-width: 100%; padding-top: var(--lift); pointer-events: none; }
   #flows button { --c: #3B82F6; --y: 0px; pointer-events: auto; font-size: clamp(13px, 1.25vw, 24px); font-weight: 700; letter-spacing: .12em;
     padding: clamp(12px, 1.2vw, 22px) clamp(14px, 1.6vw, 32px); border-radius: 14px; border: 2px solid var(--c); color: #fff;
     background: color-mix(in srgb, var(--c) 24%, #0b0a18); white-space: nowrap;
@@ -86,7 +86,7 @@
     #legend div { gap: 8px; } #legend div:last-child { display: none; }
     #ticker { width: auto; height: calc(2 * 1.65em + 16px); padding: 8px 12px; order: -1; } #ticker div:nth-child(n+3) { display: none; }
     #stops { margin: -4px 0 0; }
-    #flows button { flex: 1 1 0; padding-left: 4px; padding-right: 4px; } #flows kbd { display: none; }
+    #flows { align-self: stretch; } #flows button { flex: 1 1 0; padding-left: 4px; padding-right: 4px; } #flows kbd { display: none; }
     #title h1 { font-size: 13px; letter-spacing: .14em; } #phase { font-size: 10px; letter-spacing: .1em; max-width: 45vw; }
   }
   @media (max-height: 540px) { #legend, #ticker { display: none; } }
@@ -104,7 +104,8 @@
 <div id="news" class="glass"></div>
 <div id="shout"><div id="face"></div><div id="bubble"></div></div>
 <div id="dock">
-<div id="side"><div id="legend" class="glass"></div><div id="flows"><button data-f="0"><kbd>1</kbd>STACK</button><button data-f="1"><kbd>2</kbd>PIPELINE</button><button data-f="2"><kbd>3</kbd>NETWORK</button><button data-f="3"><kbd>4</kbd>FUNNEL</button></div><div id="ticker" class="glass"></div></div>
+<div id="side"><div id="legend" class="glass"></div><div id="ticker" class="glass"></div></div>
+<div id="flows"><button data-f="0"><kbd>1</kbd>STACK</button><button data-f="1"><kbd>2</kbd>PIPELINE</button><button data-f="2"><kbd>3</kbd>NETWORK</button><button data-f="3"><kbd>4</kbd>FUNNEL</button></div>
 <div id="bar" class="glass">
   <div id="scrubrow"><span>CHAOS</span><input id="scrub" type="range" min="0" max="3" step="0.001" value="0"><span>ORDER</span></div>
   <div id="stops"><button data-p="0">ENTROPY</button><button data-p="1">RINGS</button><button data-p="2">LATTICE</button><button data-p="3">PAYOUT</button></div>
