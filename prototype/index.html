@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Order Engine</title>
 <style>
-  :root { --violet: #8B5CF6; --gold: #FBBF24; --emerald: #34D399; --ink: #E2E8F0; }
+  :root { --tick: clamp(40px, 3.6vw, 72px); --violet: #8B5CF6; --gold: #FBBF24; --emerald: #34D399; --ink: #E2E8F0; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: #05050B; color: var(--ink);
     font: 14px/1.4 ui-sans-serif, system-ui, "Segoe UI", sans-serif; }
   canvas { position: fixed; inset: 0; display: block; }
@@ -19,7 +19,7 @@
   #bank.hot { border-color: rgba(52, 211, 153, .75); box-shadow: 0 0 24px rgba(16, 185, 129, .28); }
   #bank small { display: block; font-size: clamp(10px, .8vw, 18px); letter-spacing: .2em; opacity: .6; }
   #money { font-size: clamp(24px, 2.2vw, 52px); font-variant-numeric: tabular-nums; color: var(--emerald); font-weight: 600; }
-  #dock { position: fixed; left: 0; right: 0; bottom: 0; padding: 0 24px 22px; display: flex; flex-direction: column;
+  #dock { position: fixed; left: 0; right: 0; bottom: 0; padding: 0 24px calc(var(--tick) + 14px); display: flex; flex-direction: column;
     gap: 12px; pointer-events: none; box-sizing: border-box; }
   #dock .glass { pointer-events: auto; }
   #side { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; pointer-events: none; }
@@ -47,11 +47,18 @@
   #rate { display: block; margin-top: 2px; font-size: clamp(10px, .75vw, 15px); letter-spacing: .08em; opacity: .85;
     font-variant-numeric: tabular-nums; min-height: 1.3em; }
   #rate.sync { color: var(--emerald); } #rate.off { color: #F87171; }
-  #news { position: fixed; top: 22px; left: 50%; transform: translateX(-50%); width: min(44vw, 760px); box-sizing: border-box;
-    padding: 8px 14px; font-size: clamp(12px, .85vw, 16px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    opacity: 0; transition: opacity .4s; pointer-events: none; }
-  #news.on { opacity: 1; }
-  #news b { color: var(--gold); letter-spacing: .12em; margin-right: 10px; font-size: .85em; }
+  #scroller { position: fixed; left: 0; right: 0; bottom: 0; height: var(--tick); display: flex; z-index: 3;
+    font-size: calc(var(--tick) * .5); background: linear-gradient(#0d3a8f, #061a45); border-top: 3px solid #F5C518;
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, .5); }
+  #tag { display: flex; flex: none; align-items: stretch; font-weight: 800; letter-spacing: .03em; position: relative; z-index: 1; }
+  #tag b { background: linear-gradient(#e11d3c, #9b0d24); color: #fff; padding: 0 .9em; display: flex; align-items: center; font-style: italic; }
+  #tag span { background: #fff; color: #0d3a8f; padding: 0 .8em; display: flex; align-items: center; font-weight: 900; }
+  #lane { flex: 1; overflow: hidden; position: relative; }
+  #track { position: absolute; left: 0; top: 0; height: 100%; display: flex; align-items: center; white-space: nowrap;
+    font-weight: 700; color: #fff; text-shadow: 0 2px 3px rgba(0, 0, 0, .55); will-change: transform; }
+  #track .it { padding-right: 1.1em; }
+  #track .it::after { content: "\25C6"; color: #F5C518; margin-left: 1.1em; font-size: .7em; vertical-align: .1em; }
+  #track .it.hot { color: #FFE066; } #track .it.hot i { font-style: normal; background: #C8102E; color: #fff; padding: 0 .4em; margin-right: .5em; border-radius: 3px; }
   #flows { --lift: clamp(12px, 1.5vw, 24px); display: flex; gap: clamp(8px, 1vw, 18px); justify-content: center; align-items: flex-end;
     align-self: center; max-width: 100%; padding-top: var(--lift); pointer-events: none; }
   #flows button { --c: #3B82F6; --y: 0px; pointer-events: auto; font-size: clamp(13px, 1.25vw, 24px); font-weight: 700; letter-spacing: .12em;
@@ -78,9 +85,9 @@
   #bubble { padding: 10px 14px; border-radius: 14px; background: #F8FAFC; color: #0b0a18; font-weight: 700;
     font-size: clamp(13px, 1vw, 18px); line-height: 1.25; }
   #bubble small { display: block; font-size: .68em; letter-spacing: .14em; opacity: .6; margin-bottom: 2px; }
-  @media (max-width: 900px) { #news { top: 104px; width: calc(100vw - 24px); } }
   @media (max-width: 720px) {
-    #dock { padding: 0 12px 12px; gap: 8px; }
+    #dock { padding: 0 12px calc(var(--tick) + 8px); gap: 8px; }
+    #tag span { display: none; }
     #side { flex-direction: column; align-items: stretch; gap: 8px; }
     #legend { width: auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 14px; padding: 8px 12px; font-size: 12px; }
     #legend div { gap: 8px; } #legend div:last-child { display: none; }
@@ -101,7 +108,7 @@
 <body>
 <div id="title"><h1>THE ORDER ENGINE</h1><div id="phase">ENTROPY</div></div>
 <div id="bank" class="glass"><small>IN THE BANK</small><span id="money">$0</span><span id="rate"></span></div>
-<div id="news" class="glass"></div>
+<div id="scroller"><div id="tag"><b>BREAKING</b><span>FOXISH NEWS</span></div><div id="lane"><div id="track"></div></div></div>
 <div id="shout"><div id="face"></div><div id="bubble"></div></div>
 <div id="dock">
 <div id="side"><div id="legend" class="glass"></div><div id="ticker" class="glass"></div></div>
@@ -460,6 +467,72 @@ sndBtn.onclick = () => setSound(!soundOn);
 const firstGesture = e => { if (!actx && !(e.target && e.target.closest && e.target.closest('#snd'))) setSound(true); };
 addEventListener('pointerdown', firstGesture, { once: true }); addEventListener('keydown', firstGesture, { once: true });
 
+// ---------- the 24-hour scroller ----------
+// Headlines are assembled from pools (tens of thousands of combinations per template), so a long session
+// never shows a repeat. Only the FLASH items are tied to the market; everything else is noise.
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const SUBJ = ['Local man', 'Area cat', 'Regional spreadsheet', "Nation's accountants", 'Panel of retired librarians', 'Unsorted folder',
+  'Sources close to the printer', "Your uncle's PDF", 'The Cloud', 'A rogue stapler', 'Man holding a clipboard', 'Municipal recycle bin',
+  'Three confused interns', 'Self-described thought leader', 'Entire accounting department', 'A very large pigeon', 'The office plant',
+  'Anonymous barista', 'Wi-Fi router', 'Shipping container of thumb drives', 'Night-shift janitor', 'Mayor of a mid-sized town',
+  'Prominent hamster', 'Experts', 'A shocking study', 'Regional manager', "Grandma's laptop", 'Suspicious email', 'Retired astronaut',
+  'The vending machine', 'Local weatherman', 'Competitive chess club', 'Your landlord', 'A mysterious intern named Greg', 'Flock of seagulls',
+  'Mild-mannered banker', 'The printer', 'A toaster', 'Visiting professor', 'Crowd of onlookers'];
+const ACT = ['demands answers about', 'is baffled by', 'quietly sorts', 'refuses to explain', 'accidentally deletes', 'warns of', 'celebrates',
+  'files a complaint about', 'spots strange', 'launches inquiry into', 'cannot stop talking about', 'reorganizes', 'bans', 'rediscovers',
+  'sues over', 'predicts collapse of', 'sells out of', 'wins award for', 'blames', 'unveils plan to fix', 'goes viral over', 'hoards',
+  'panics over', 'begs for', 'bets everything on', 'declares war on', 'invents', 'loses track of', 'opens museum of', 'trips over',
+  'holds emergency meeting about', 'live-streams', 'trains dog to find', 'storms out over', 'wrongly accuses', 'upgrades', 'forgets password to',
+  'sends strongly worded letter about', 'hires consultant for', 'befriends'];
+const OBJ = ['a mountain of invoices', 'the filing cabinet', 'next quarter', 'lukewarm coffee', 'an unlabeled folder', 'duplicate duplicates',
+  'the shared drive', 'seven identical spreadsheets', 'a suspiciously round number', 'the break room fridge', 'tax season', 'a rubber duck',
+  'the final final draft', 'a haunted scanner', 'free pizza', 'bulk paperclips', 'the good stapler', 'a stack of receipts', 'a fax machine',
+  'the quarterly newsletter', 'one (1) missing file', 'a spicy memo', 'the wrong attachment', 'a tiny hat', 'office thermostat', 'a 400-page PDF',
+  'the backup of the backup', 'Folder Final (2)', 'the parking situation', 'a very long password', 'mysterious vending machine noises',
+  'the company retreat', 'a lost USB stick', 'overdue library books', 'giant novelty check', 'the elevator music', 'an empty inbox',
+  'a cursed spreadsheet', 'the annual audit', 'noisy radiators'];
+const TAIL = ['experts say', 'details at 11', 'more on this story', 'officials stunned', 'witnesses report', 'markets shrug', 'developing',
+  'fans react', 'analysts divided', 'nobody knows why', 'what happens next may surprise you', 'sources confirm', 'locals not surprised',
+  'investigation ongoing', 'questions remain', 'cats unavailable for comment', 'at least three people noticed', 'critics call it "fine"',
+  'insiders blame Mercury', 'shares hold steady', 'viewers advised to stay seated', "'we regret nothing', says spokesperson", 'a developing situation',
+  'full story after the break', 'unclear if related to Tuesday', 'public urged to remain moderately calm', 'history will judge', 'reports vary wildly'];
+const TICK = ['FILE', 'DOCX', 'PDF', 'FOLD', 'CRON', 'SYNC', 'WAGE', 'BYTE', 'CASH', 'ZIPP', 'NODE', 'LOOP', 'MEMO', 'STAX', 'QUOK', 'BEEP', 'TOAST', 'YAML'];
+const CITY = ['Duluth', 'Tulsa', 'Boise', 'Reno', 'Fargo', 'Akron', 'Omaha', 'Toledo', 'Macon', 'Laramie', 'Yuma', 'Provo', 'Waco', 'Salem'];
+const WX = ['partly cloudy with a chance of taxes', 'scattered paperwork', 'sunny, with lingering uncertainty', 'fog rolling in off the cloud',
+  'brisk and mildly passive-aggressive', 'a light drizzle of memos', 'clear skies, murky intentions', 'gusty, bring a binder'];
+const TEAM = ['Spreadsheets', 'Interns', 'Hamsters', 'Accountants', 'Pigeons', 'Staplers', 'Librarians', 'Thumb Drives', 'Seagulls', 'Toasters'];
+const POLL = ['think folders should be illegal', 'would trade their inbox for a sandwich', 'believe the printer is watching', 'say they "probably" backed it up',
+  'cannot name a single file on their desktop', 'think Tuesday is a hoax', 'would rename everything if they could', 'say the cloud is "just someone else\'s computer"'];
+const between = (a, b) => a + Math.random() * (b - a);
+function genHeadline() {
+  const r = Math.random();
+  if (r < 0.62) return (pick(SUBJ) + ' ' + pick(ACT) + ' ' + pick(OBJ) + (Math.random() < 0.55 ? ': ' + pick(TAIL) : '')).toUpperCase();
+  if (r < 0.74) { const n = 3 + Math.floor(Math.random() * 3), parts = [];
+    for (let i = 0; i < n; i++) { const up = Math.random() < 0.5; parts.push(pick(TICK) + ' ' + between(5, 4000).toFixed(2) + ' ' + (up ? '▲' : '▼') + between(0.1, 6).toFixed(1) + '%'); }
+    return 'MARKETS: ' + parts.join('   '); }
+  if (r < 0.82) return 'WEATHER IN ' + pick(CITY).toUpperCase() + ': ' + pick(WX).toUpperCase() + ', HIGH OF ' + Math.floor(between(31, 98)) + ' DEGREES';
+  if (r < 0.90) return 'SPORTS: ' + pick(CITY).toUpperCase() + ' ' + pick(TEAM).toUpperCase() + ' ' + Math.floor(between(0, 120)) + ', ' + pick(CITY).toUpperCase() + ' ' + pick(TEAM).toUpperCase() + ' ' + Math.floor(between(0, 120));
+  if (r < 0.96) return 'POLL: ' + Math.floor(between(11, 89)) + '% OF VIEWERS ' + pick(POLL).toUpperCase();
+  return 'ALERT: ' + pick(SUBJ).toUpperCase() + ' SPOTTED NEAR ' + pick(CITY).toUpperCase() + ', ' + pick(TAIL).toUpperCase();
+}
+const track = document.getElementById('track'), lane = document.getElementById('lane');
+let tOff = 0, tTotal = 0, tWidths = [], laneW = 800, flashQ = [];
+function addItem() {
+  const f = flashQ.shift(), el = document.createElement('span');
+  el.className = 'it' + (f ? ' hot' : '');
+  if (f) el.innerHTML = '<i>FLASH</i>' + f; else el.textContent = genHeadline();
+  track.appendChild(el); const w = el.offsetWidth; tWidths.push(w); tTotal += w;
+}
+function scrollTick(dt) {
+  const px = parseFloat(getComputedStyle(track).fontSize) || 24;
+  tOff += dt * px * 5.5;
+  while (tWidths.length && tOff >= tWidths[0]) { tOff -= tWidths[0]; tTotal -= tWidths.shift(); track.firstChild.remove(); }
+  while (tTotal - tOff < laneW + 400) addItem();
+  track.style.transform = 'translate3d(' + (-tOff) + 'px,0,0)';
+}
+addEventListener('resize', () => { laneW = lane.clientWidth; });
+laneW = lane.clientWidth || innerWidth;
+
 // ---------- the market: which flow system pays best right now ----------
 // Outlets and characters are invented parodies; any resemblance to real broadcasters is a joke.
 const NEWS = [
@@ -482,6 +555,41 @@ const SHOUTS = [
   ["IT'S GONE GLOBAL! THE NETWORK, PEOPLE, THE NETWORK!", "We're viral, chat. Network mode. Obviously."],
   ["IT'S ALL COLLAPSING INTO ONE BIG FUNNEL! I TOLD YOU!", "Everything's crashing. Funnel it. Cope."],
 ];
+// What the commentators say between market shifts. None of it changes which flow pays best.
+const FILLERS = [[
+  "THEY'RE PUTTING CHEMICALS IN THE WATER AND THE FROGS ARE GETTING FANCY!",
+  "I SAW A FROG IN A TINY MONOCLE. YOU CAN'T UNSEE THAT, FOLKS!",
+  "BUY MY BRAIN-FORCE SOUP! IT FIXES SPREADSHEETS AND ONE OTHER THING!",
+  "THE CLOUD ISN'T REAL! IT'S SOMEBODY'S BASEMENT! I'VE SEEN THE BASEMENT!",
+  "I'M NOT YELLING, THE MARKET IS JUST TOO QUIET!",
+  "THEY CAN'T STOP ME FROM RENAMING THE FOLDERS!",
+  "THE FROGS KNOW ABOUT THE TAXES. ASK YOURSELF WHY THEY'RE SO CALM.",
+  "I'VE BEEN SAYING THIS SINCE MONDAY, AND ALSO BEFORE MONDAY!",
+  "MY MICROPHONE IS A SUPERFOOD! THAT'S NOT A JOKE, IT'S A PRODUCT!",
+  "THE WATER IS TOO WET! THAT'S NO ACCIDENT, FOLKS!",
+  "SOMEBODY ALPHABETIZED MY DESK AND I DID NOT AUTHORIZE IT!",
+  "WAKE UP! THE STAPLER HAS BEEN MOVED THREE INCHES!",
+  "THEY WANT YOU TO USE SUBFOLDERS! WHO BENEFITS FROM THE SUBFOLDERS?!",
+  "THE PIGEONS ARE FILING TAXES AND NOBODY IS ASKING WHY!",
+  "I'M SWEATING BECAUSE THE TRUTH IS HOT, NOT BECAUSE OF THIS STUDIO!",
+  "FROGS! WATER! PAPERWORK! IT'S ALL CONNECTED, YOU'RE JUST NOT LOOKING!"],
+ [
+  "Chat, look at this. Absolutely cooked.",
+  "I'm not mad, chat. I'm just disappointed in the entire market.",
+  "Ratio. The market just got ratioed.",
+  "My show's three hours long and we're only on hour one, chat.",
+  "Cope. Seethe. Re-sort your files.",
+  "This is the most important stream of my life. Again.",
+  "If you're not stacking, what are you even doing, chat?",
+  "W portfolio. Massive W. Don't @ me.",
+  "Everybody keeps telling me to calm down. I will never calm down.",
+  "I've been up since 4 a.m. rearranging my desktop, chat.",
+  "That's a L take, and I'm not even going to explain why.",
+  "Chat, rate my folder structure. Be honest. Don't be honest.",
+  "Hold on, my other headset is better. Sorry, chat.",
+  "Doing the thing where I act calm and then yell for no reason.",
+  "Another day, another unsorted downloads folder. We keep going.",
+  "Can we get a 'Kyle was right' in the chat? Thank you."]];
 const FACES = [
   ['BRICK THUNDER · RANT RADIO', `<svg viewBox="0 0 120 120"><circle cx="60" cy="66" r="44" fill="#E2553F"/>
     <path d="M20 52 Q60 4 100 52 Q60 26 20 52Z" fill="#5b3a29"/>
@@ -490,20 +598,21 @@ const FACES = [
     <circle cx="47" cy="66" r="2.5" fill="#111"/><circle cx="73" cy="66" r="2.5" fill="#111"/>
     <ellipse cx="60" cy="91" rx="19" ry="13" fill="#3b0d0d"/><path d="M45 84 H75" stroke="#fff" stroke-width="5"/>
     <path d="M104 56 q9 9 2 17 q-8 -6 -2 -17Z" fill="#7dd3fc"/>
+    <ellipse cx="22" cy="106" rx="14" ry="10" fill="#4ade80"/><circle cx="14" cy="97" r="4.5" fill="#4ade80"/><circle cx="28" cy="97" r="4.5" fill="#4ade80"/><circle cx="14" cy="97" r="1.8" fill="#111"/><circle cx="28" cy="97" r="1.8" fill="#111"/>
     <rect x="2" y="78" width="16" height="26" rx="8" fill="#475569"/><path d="M10 104 V118" stroke="#475569" stroke-width="4"/></svg>`],
   ['KYLE · LIVE', `<svg viewBox="0 0 120 120"><path d="M28 120 L44 96 H76 L92 120Z" fill="#1e293b"/><path d="M56 98 h8 l3 22 h-14z" fill="#b91c1c"/>
     <ellipse cx="60" cy="58" rx="30" ry="38" fill="#F1D3B8"/>
-    <path d="M30 52 Q32 14 70 17 Q96 22 90 54 Q82 30 52 34 Q38 36 30 52Z" fill="#2b2118"/>
+    <path d="M30 52 Q32 14 70 17 Q96 22 90 54 Q82 30 52 34 Q38 36 30 52Z" fill="#B58A5C"/>
     <path d="M40 55 h14 M66 53 h14" stroke="#2b2118" stroke-width="3" stroke-linecap="round"/>
     <path d="M42 63 h10 M68 63 h10" stroke="#111" stroke-width="4" stroke-linecap="round"/>
     <path d="M48 83 Q62 87 75 76" stroke="#7c2d12" stroke-width="3" fill="none" stroke-linecap="round"/>
     <rect x="22" y="52" width="9" height="18" rx="4" fill="#475569"/><path d="M26 70 q4 18 24 15" stroke="#475569" stroke-width="3" fill="none"/></svg>`],
 ];
-const newsEl = document.getElementById('news'), shoutEl = document.getElementById('shout'), faceEl = document.getElementById('face'),
+const shoutEl = document.getElementById('shout'), faceEl = document.getElementById('face'),
       bubbleEl = document.getElementById('bubble'), rateEl = document.getElementById('rate'),
       flowBtns = [...document.querySelectorAll('#flows button')];
 const latA = geo.attributes.aLattice, latB = geo.attributes.aLatticeB;
-let form = 0, formT = -1, regime = 0, regimeT = 0, regimeLen = 9, newsT = 99, newsI = 0, shoutT = 0, who = 0, lastRate = '';
+let form = 0, formT = -1, regime = 0, regimeT = 0, regimeLen = 7, fillT = 2.5, shoutT = 0, who = 0, lastRate = '';
 function setForm(f) {
   if (f === form) return;
   if (formT >= 0) { latA.array.set(latB.array); latA.needsUpdate = true; }     // finish a morph already under way
@@ -512,16 +621,14 @@ function setForm(f) {
   if (actx && soundOn) blip(90, 0.9, 'sawtooth', 0.07, 6);
 }
 flowBtns.forEach((b, i) => { b.onclick = () => setForm(i); b.classList.toggle('on', i === 0); });
-function shout() {
+function shout(cue) {
   who = 1 - who;
   shoutEl.classList.remove('on'); shoutEl.classList.toggle('right', who === 1); void shoutEl.offsetWidth;
-  faceEl.innerHTML = FACES[who][1]; bubbleEl.innerHTML = '<small>' + FACES[who][0] + '</small>' + SHOUTS[regime][who];
-  shoutEl.classList.add('on'); shoutT = 5.5;
+  faceEl.innerHTML = FACES[who][1];
+  bubbleEl.innerHTML = '<small>' + FACES[who][0] + '</small>' + (cue ? SHOUTS[regime][who] : pick(FILLERS[who]));
+  shoutEl.classList.add('on'); shoutT = cue ? 3.6 : 2.8;
 }
-function showNews() {
-  const n = NEWS[regime][newsI++ % 3];
-  newsEl.innerHTML = '<b>' + n[0] + '</b>' + n[1];
-}
+function flashNews() { flashQ.push(NEWS[regime][Math.floor(Math.random() * 3)][1]); }
 
 let dolly = 0, lastT = performance.now(), slowMs = 0, okFrames = 0, lastPhase = '', lastMoney = -1;
 renderer.setAnimationLoop(() => {
@@ -530,6 +637,7 @@ renderer.setAnimationLoop(() => {
   lastT = now;
   const dt = Math.min(elapsed / 1000, 0.05);
   uniforms.uTime.value += dt;
+  scrollTick(dt);
 
   // step quality down if frames stay slower than ~45 fps for about two seconds (never back up, to avoid flicker)
   if (elapsed < 250) {                             // ignore tab switches and stalls
@@ -580,12 +688,11 @@ renderer.setAnimationLoop(() => {
   // The market shifts every 11-17 seconds. The matching flow system pays 3x; any other pays 0.6x.
   const live = pay > 0.5 && (playing || P >= 2.99), mult = form === regime ? 3 : 0.6;
   if (live) {
-    regimeT += dt; newsT += dt;
-    if (regimeT > regimeLen) { regime = (regime + 1 + Math.floor(Math.random() * 3)) % 4; regimeT = 0; regimeLen = 11 + Math.random() * 6; newsT = 99; shout(); }
-    if (newsT > 5) { newsT = 0; showNews(); }
+    regimeT += dt; fillT -= dt;
+    if (regimeT > regimeLen) { regime = (regime + 1 + Math.floor(Math.random() * 3)) % 4; regimeT = 0; regimeLen = 6 + Math.random() * 4; flashNews(); shout(true); fillT = 3 + Math.random() * 2; }
+    if (fillT <= 0 && shoutT <= 0) { shout(false); fillT = 3 + Math.random() * 3; }
     money += dt * 1400 * pay * mult;
   }
-  newsEl.classList.toggle('on', live);
   if (shoutT > 0) { shoutT -= dt; if (shoutT <= 0 || !live) { shoutT = 0; shoutEl.classList.remove('on'); } }
   const rate = live ? '+$' + Math.round(1400 * mult).toLocaleString() + '/s · ' + (mult > 1 ? 'IN SYNC ×3' : 'OFF TREND') : '';
   if (rate !== lastRate) { lastRate = rate; rateEl.textContent = rate; rateEl.className = !live ? '' : mult > 1 ? 'sync' : 'off'; }
@@ -598,7 +705,7 @@ renderer.setAnimationLoop(() => {
 });
 
 addEventListener('resize', applySize);
-window.__engine = { uniforms, setP, renderer, setForm, setRegime: r => { regime = r; regimeT = 0; newsT = 99; shout(); }, stats: () => ({ lowPower: LOW_POWER, renderScale, qStep, width: renderer.domElement.width, height: renderer.domElement.height }) };
+window.__engine = { uniforms, setP, renderer, setForm, setRegime: r => { regime = r; regimeT = 0; flashNews(); shout(true); }, stats: () => ({ lowPower: LOW_POWER, renderScale, qStep, width: renderer.domElement.width, height: renderer.domElement.height }) };
 </script>
 </body>
 </html>
