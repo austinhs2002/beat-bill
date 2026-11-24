@@ -557,6 +557,18 @@ const SHOUTS = [
 ];
 // What the commentators say between market shifts. None of it changes which flow pays best.
 const FILLERS = [[
+  "THERE'S A SECRET REDWOOD CLUB IN CALIFORNIA! BUSINESSMEN IN ROBES BOWING TO A GIANT OWL! I WAS THERE! I HAD A TINY CAMERA IN MY SHOE!",
+  "THE OWL WAS THIRTY FEET TALL AND IT HAD THE QUARTERLY NUMBERS! I SAW THEM! THEY WERE GOOD!",
+  "THE MOON LANDING WAS FILMED IN A STUDIO, AND THE STUDIO WAS AN UNSORTED FOLDER! WAKE UP!",
+  "THEY'VE GOT A SLAVE COLONY ON MARS AND THE ONLY JOB IS ALPHABETIZING!",
+  "THE GOVERNMENT HAS A WEATHER MACHINE AND IT'S SET TO 'MILDLY DAMP' ON PURPOSE!",
+  "THE PIZZA IS HIDING SOMETHING! THE CRUST! THE CRUST IS TOO EVEN! NOBODY'S CRUST IS THAT EVEN!",
+  "CHEMTRAILS?! I'M TALKING CHEMTRAILS WITH SPREADSHEETS IN THEM! LOOK UP, FOLKS!",
+  "I ONLY DRINK WATER I'VE PERSONALLY INTERVIEWED!",
+  "MY NEW SUPPLEMENT MAKES YOUR FOLDERS SIX PERCENT MORE MASCULINE! IT'S IN THE FINE PRINT!",
+  "I'M THE ONLY HONEST MAN IN RADIO, AND I SOLD YOU THE SOUP!",
+  "THEY TOLD ME TO STOP SAYING 'THE DEEP STATE'. SO NOW I SAY 'THE SLIGHTLY DEEPER STATE'!",
+  "A MAN IN A SUIT FOLLOWED ME HOME. IT WAS MY ACCOUNTANT. HE STILL DOESN'T RETURN MY EMAILS!",
   "THEY'RE PUTTING CHEMICALS IN THE WATER THAT TURN THE FROGS GAY! ...AND HONESTLY, THE FROGS HAVE NEVER LOOKED BETTER!",
   "THE WATER IS MAKING THE FROGS GAY, THE FROGS ARE MAKING THE SPREADSHEETS FABULOUS, AND I'M JUST ASKING QUESTIONS!",
   "I DRANK THE WATER MYSELF TO TEST IT. NOW I HAVE OPINIONS ABOUT CURTAINS. THE FROGS WERE RIGHT!",
@@ -624,14 +636,22 @@ function setForm(f) {
   if (actx && soundOn) blip(90, 0.9, 'sawtooth', 0.07, 6);
 }
 flowBtns.forEach((b, i) => { b.onclick = () => setForm(i); b.classList.toggle('on', i === 0); });
+// A bubble stays up for 150% of a deliberate read (3 words/s plus a 0.6 s lead-in); frog rants linger for the laugh.
+const holdFor = t => Math.max(2.2, 1.5 * (0.6 + t.trim().split(/\s+/).length / 3) + (/FROG/i.test(t) ? 1.5 : 0));
+let cuePending = false;
 function shout(cue) {
   who = 1 - who;
+  let text;
+  if (cue) text = SHOUTS[regime][who];
+  else {                                           // prefer a line that finishes before the next market shift
+    const left = Math.max(3.5, regimeLen - regimeT + 1.5);
+    for (let i = 0; i < 6; i++) { text = pick(FILLERS[who]); if (holdFor(text) <= left) break; }
+  }
   shoutEl.classList.remove('on'); shoutEl.classList.toggle('right', who === 1); void shoutEl.offsetWidth;
   faceEl.innerHTML = FACES[who][1];
-  bubbleEl.innerHTML = '<small>' + FACES[who][0] + '</small>' + (cue ? SHOUTS[regime][who] : pick(FILLERS[who]));
+  bubbleEl.innerHTML = '<small>' + FACES[who][0] + '</small>' + text;
   shoutEl.classList.add('on');
-  const words = (cue ? SHOUTS[regime][who] : bubbleEl.textContent.replace(FACES[who][0], '')).trim().split(/\s+/).length;
-  shoutT = Math.max(2.2, 1.5 * (0.6 + words / 3) + (/FROG/i.test(bubbleEl.textContent) ? 1.5 : 0));   // frog rants linger for the laugh
+  shoutT = holdFor(text);
   fillT = shoutT + 0.8 + Math.random() * 1.7;
 }
 function flashNews() { flashQ.push(NEWS[regime][Math.floor(Math.random() * 3)][1]); }
@@ -695,8 +715,8 @@ renderer.setAnimationLoop(() => {
   const live = pay > 0.5 && (playing || P >= 2.99), mult = form === regime ? 3 : 0.6;
   if (live) {
     regimeT += dt; fillT -= dt;
-    if (regimeT > regimeLen) { regime = (regime + 1 + Math.floor(Math.random() * 3)) % 4; regimeT = 0; regimeLen = 6 + Math.random() * 4; flashNews(); shout(true); }
-    if (fillT <= 0 && shoutT <= 0) { shout(false); }
+    if (regimeT > regimeLen) { regime = (regime + 1 + Math.floor(Math.random() * 3)) % 4; regimeT = 0; regimeLen = 6 + Math.random() * 4; flashNews(); cuePending = true; }
+    if (shoutT <= 0) { if (cuePending) { cuePending = false; shout(true); } else if (fillT <= 0) shout(false); }
     money += dt * 1400 * pay * mult;
   }
   if (shoutT > 0) { shoutT -= dt; if (shoutT <= 0 || !live) { shoutT = 0; shoutEl.classList.remove('on'); } }
@@ -711,7 +731,7 @@ renderer.setAnimationLoop(() => {
 });
 
 addEventListener('resize', applySize);
-window.__engine = { uniforms, setP, renderer, setForm, shout, dur: () => shoutT, setRegime: r => { regime = r; regimeT = 0; flashNews(); shout(true); }, stats: () => ({ lowPower: LOW_POWER, renderScale, qStep, width: renderer.domElement.width, height: renderer.domElement.height }) };
+window.__engine = { uniforms, setP, renderer, setForm, shout, dur: () => shoutT, setRegime: r => { regime = r; regimeT = 0; flashNews(); cuePending = true; }, stats: () => ({ lowPower: LOW_POWER, renderScale, qStep, width: renderer.domElement.width, height: renderer.domElement.height }) };
 </script>
 </body>
 </html>
