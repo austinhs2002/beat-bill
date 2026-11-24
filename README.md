@@ -20,6 +20,11 @@ Three.js from a CDN.
 - **Organize** plays the full sequence; the slider scrubs between chaos and order.
 - **Use my files** sorts the file names from a folder you pick. Only names are
   read, in your browser; nothing is uploaded.
+- **Flow** (keys 1-4) switches the ordered shape: Stack, Pipeline, Network or Funnel.
+  During the payout the market shifts every 11-17 seconds; the matching shape pays 3x
+  and the others pay 0.6x. The news strip and the shouting commentators tell you which.
 - **Absorb Bill's Brain** is the opening gag.
+
+The news outlets and commentators are invented parodies, not real broadcasters or people.
 
 Copyright (c) 2026 austinhs2002. All rights reserved. See `LICENSE`.

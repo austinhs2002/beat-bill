@@ -44,6 +44,29 @@
     background: rgba(139, 92, 246, .16); border: 1px solid rgba(139, 92, 246, .5); border-radius: 9px; padding: 8px 14px; }
   button:hover, label.btn:hover { background: rgba(139, 92, 246, .34); }
   button.primary { background: var(--violet); color: #0b0a18; font-weight: 700; border-color: transparent; }
+  #rate { display: block; margin-top: 2px; font-size: clamp(10px, .75vw, 15px); letter-spacing: .08em; opacity: .85;
+    font-variant-numeric: tabular-nums; min-height: 1.3em; }
+  #rate.sync { color: var(--emerald); } #rate.off { color: #F87171; }
+  #news { position: fixed; top: 22px; left: 50%; transform: translateX(-50%); width: min(44vw, 760px); box-sizing: border-box;
+    padding: 8px 14px; font-size: clamp(12px, .85vw, 16px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    opacity: 0; transition: opacity .4s; pointer-events: none; }
+  #news.on { opacity: 1; }
+  #news b { color: var(--gold); letter-spacing: .12em; margin-right: 10px; font-size: .85em; }
+  #flows { display: flex; gap: 6px; justify-content: center; align-items: center; flex-wrap: wrap; font-size: 10px; letter-spacing: .14em; }
+  #flows button.on { background: var(--emerald); color: #06140f; border-color: transparent; font-weight: 700; }
+  #flows kbd { font: inherit; opacity: .55; margin-right: 6px; }
+  #shout { position: fixed; top: 44%; left: 16px; transform: translate(-130%, -50%); display: flex; align-items: center; gap: 10px;
+    max-width: min(460px, 82vw); transition: transform .35s cubic-bezier(.2, 1.4, .4, 1); pointer-events: none; z-index: 2; }
+  #shout.right { left: auto; right: 16px; flex-direction: row-reverse; transform: translate(130%, -50%); }
+  #shout.on, #shout.right.on { transform: translate(0, -50%); }
+  #shout svg { width: clamp(84px, 9vw, 150px); height: auto; flex: none; }
+  #shout.on svg { animation: rant .18s infinite alternate; }
+  @keyframes rant { from { transform: rotate(-3deg); } to { transform: rotate(3deg) translateY(-3px); } }
+  @media (prefers-reduced-motion: reduce) { #shout.on svg { animation: none; } }
+  #bubble { padding: 10px 14px; border-radius: 14px; background: #F8FAFC; color: #0b0a18; font-weight: 700;
+    font-size: clamp(13px, 1vw, 18px); line-height: 1.25; }
+  #bubble small { display: block; font-size: .68em; letter-spacing: .14em; opacity: .6; margin-bottom: 2px; }
+  @media (max-width: 900px) { #news { top: 104px; width: calc(100vw - 24px); } }
   @media (max-width: 720px) {
     #dock { padding: 0 12px 12px; gap: 8px; }
     #side { flex-direction: column; align-items: stretch; gap: 8px; }
@@ -64,12 +87,15 @@
 </head>
 <body>
 <div id="title"><h1>THE ORDER ENGINE</h1><div id="phase">ENTROPY</div></div>
-<div id="bank" class="glass"><small>IN THE BANK</small><span id="money">$0</span></div>
+<div id="bank" class="glass"><small>IN THE BANK</small><span id="money">$0</span><span id="rate"></span></div>
+<div id="news" class="glass"></div>
+<div id="shout"><div id="face"></div><div id="bubble"></div></div>
 <div id="dock">
 <div id="side"><div id="legend" class="glass"></div><div id="ticker" class="glass"></div></div>
 <div id="bar" class="glass">
   <div id="scrubrow"><span>CHAOS</span><input id="scrub" type="range" min="0" max="3" step="0.001" value="0"><span>ORDER</span></div>
   <div id="stops"><button data-p="0">ENTROPY</button><button data-p="1">RINGS</button><button data-p="2">LATTICE</button><button data-p="3">PAYOUT</button></div>
+  <div id="flows"><span>FLOW</span><button data-f="0"><kbd>1</kbd>STACK</button><button data-f="1"><kbd>2</kbd>PIPELINE</button><button data-f="2"><kbd>3</kbd>NETWORK</button><button data-f="3"><kbd>4</kbd>FUNNEL</button></div>
   <div id="btns">
     <button class="primary" id="go">ORGANIZE</button>
     <button id="reset">BACK TO CHAOS</button>
@@ -137,7 +163,7 @@ camera.position.set(0, 3, 23);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 1.5, 0);
 controls.enableDamping = true; controls.autoRotate = true; controls.autoRotateSpeed = 0.5;
-controls.minDistance = 8; controls.maxDistance = 45;
+controls.minDistance = 8; controls.maxDistance = 55;
 
 // ---------- per-instance data ----------
 const geo = new THREE.InstancedBufferGeometry();
@@ -174,6 +200,27 @@ for (let i = 0; i < N; i++) {
 }
 geo.setAttribute('aChaos', new THREE.InstancedBufferAttribute(aChaos, 3));
 geo.setAttribute('aLattice', new THREE.InstancedBufferAttribute(aLattice, 3));
+
+// Four ordered "flow systems". Every one lists its points bottom to top, so the strata stay in pipeline order.
+function makeForm(fn) {
+  const a = new Float32Array(N * 3); let top = -1e9;
+  for (let i = 0; i < N; i++) { const q = fn(i, i / (N - 1)); a.set([q[0], q[1] + 1.2, q[2]], i * 3); top = Math.max(top, q[1] + 1.2); }
+  return { pts: a, apex: top + 0.15 };
+}
+const GOLDEN = 2.39996323;
+const FORMS = [
+  { name: 'STACK', pts: aLattice.slice(), apex: 1.2 + pts[N - 1][1] * S + 0.15 },
+  { name: 'PIPELINE', ...makeForm((i, t) => {           // double helix
+      const r = (2.3 + (((i >> 1) % 5) - 2) * 0.16) * Math.min(1, (1 - t) * 12 + 0.05), a = t * Math.PI * 14 + (i % 2) * Math.PI;
+      return [Math.cos(a) * r, -4.95 + 9.9 * t, Math.sin(a) * r]; }) },
+  { name: 'NETWORK', ...makeForm((i, t) => {            // sphere shell
+      const y = -1 + 2 * t, r = Math.sqrt(Math.max(0, 1 - y * y)), a = i * GOLDEN;
+      return [Math.cos(a) * r * 4.7, y * 4.7, Math.sin(a) * r * 4.7]; }) },
+  { name: 'FUNNEL', ...makeForm((i, t) => {             // wide at the base, a point at the beam
+      const r = 0.15 + 4.6 * Math.pow(1 - t, 1.6), a = i * GOLDEN;
+      return [Math.cos(a) * r, -4.95 + 9.9 * t, Math.sin(a) * r]; }) },
+];
+geo.setAttribute('aLatticeB', new THREE.InstancedBufferAttribute(aLattice.slice(), 3));
 geo.setAttribute('aBrain', new THREE.InstancedBufferAttribute(aBrain, 3));
 geo.setAttribute('aAxis', new THREE.InstancedBufferAttribute(aAxis, 3));
 geo.setAttribute('aCrease', new THREE.InstancedBufferAttribute(aCrease, 1));
@@ -181,14 +228,14 @@ const metaAttr = new THREE.InstancedBufferAttribute(aMeta, 4);
 geo.setAttribute('aMeta', metaAttr);
 
 const uniforms = {
-  uTime: { value: 0 }, uP: { value: 0 }, uBrain: { value: 1 }, uSolo: { value: -1 },
+  uTime: { value: 0 }, uP: { value: 0 }, uBrain: { value: 1 }, uSolo: { value: -1 }, uForm: { value: 0 },
   uCols: { value: STAGES.map(s => new THREE.Color(s.hex)) },
 };
 const mat = new THREE.ShaderMaterial({
   uniforms,
   vertexShader: /* glsl */`
-    attribute vec3 aChaos, aLattice, aBrain, aAxis; attribute vec4 aMeta; attribute float aCrease;
-    uniform float uTime, uP, uBrain, uSolo; uniform vec3 uCols[4];
+    attribute vec3 aChaos, aLattice, aLatticeB, aBrain, aAxis; attribute vec4 aMeta; attribute float aCrease;
+    uniform float uTime, uP, uBrain, uSolo, uForm; uniform vec3 uCols[4];
     varying vec3 vCol; varying vec3 vN; varying vec3 vW; varying float vGlow, vPay, vOrder, vDim;
     mat3 rot(vec3 a, float t) { float c = cos(t), s = sin(t), o = 1. - c;
       return mat3(o*a.x*a.x+c, o*a.x*a.y+a.z*s, o*a.z*a.x-a.y*s,
@@ -217,7 +264,8 @@ const mat = new THREE.ShaderMaterial({
 
       // 2: everything where it belongs
       mat3 spin = rot(Y, uTime * .18);
-      vec3 lp = spin * (aLattice - vec3(0., 1.2, 0.)) + vec3(0., 1.2, 0.);
+      vec3 la = mix(aLattice, aLatticeB, ease(uForm * 1.6 - seed * .6));   // morph between flow systems
+      vec3 lp = spin * (la - vec3(0., 1.2, 0.)) + vec3(0., 1.2, 0.);
 
       vec3 p = mix(mix(c, rp, e1), lp, e2);
       float tumble = (1. - e2c) * (1. - .55 * e1) * mix(.15, 1., uBrain);
@@ -230,7 +278,7 @@ const mat = new THREE.ShaderMaterial({
       vec3 grey = mix(vec3(.30, .32, .40), mix(vec3(.40, .43, .50), vec3(.30, .30, .85), sulci), brainAmt);
       vCol = mix(grey, tc, e1);
       vGlow = smoothstep(.7, 1., l2) * (1. - smoothstep(1., 1.6, l2)) + brainAmt * sulci * .35;
-      vPay = smoothstep(2., 2.5, uP) * pow(max(0., sin(aLattice.y * .8 - uTime * 4.)), 40.);
+      vPay = smoothstep(2., 2.5, uP) * pow(max(0., sin(la.y * .8 - uTime * 4.)), 40.);
       vN = normalize(nrm + aAxis * .15 * e2c); vW = p + local; vOrder = e2c;
       vDim = (uSolo < -.5 || abs(type - uSolo) < .5) ? 1. : .1;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(p + local, 1.);
@@ -268,7 +316,7 @@ sparks.frustumCulled = false; scene.add(sparks);
 const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.16, 1, 16, 1, true),
   new THREE.MeshBasicMaterial({ color: gold, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
 scene.add(beam);
-const APEX = 1.2 + pts[N - 1][1] * S + 0.15;
+let APEX = FORMS[0].apex;
 
 // post
 const composer = new EffectComposer(renderer);
@@ -336,7 +384,10 @@ scrub.addEventListener('input', () => { goal = null; playing = false; P = +scrub
 document.getElementById('go').onclick = () => { if (P >= 2.99) setP(0); playing = true; };
 document.getElementById('reset').onclick = () => { goal = null; playing = false; brainT = -1; uniforms.uBrain.value = 1; setP(0); money = 0; ticker.innerHTML = ''; };
 document.getElementById('brain').onclick = () => { goal = null; playing = false; setP(0); money = 0; ticker.innerHTML = ''; uniforms.uBrain.value = 0; brainT = 0; };
-addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); playing = !playing; } });
+addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); playing = !playing; }
+  if (e.key >= '1' && e.key <= '4') setForm(+e.key - 1);
+});
 
 function tick(dt) {
   const kinds = P < 1 ? [0, 1, 2, 3] : P < 2 ? [0, 1, 2, 3] : [3];
@@ -349,7 +400,69 @@ function tick(dt) {
   while (ticker.children.length > 6) ticker.lastChild.remove();
 }
 
-let lastT = performance.now(), slowMs = 0, okFrames = 0, lastPhase = '', lastMoney = -1;
+// ---------- the market: which flow system pays best right now ----------
+// Outlets and characters are invented parodies; any resemblance to real broadcasters is a joke.
+const NEWS = [
+  [['CNBZ', 'Rates on unsorted ideas hiked again; savers pile into vaults'],
+   ['FOXISH NEWS', 'Are your folders being taxed? Experts say hoard everything'],
+   ['NPQ', 'A quiet meditation on putting things on top of other things']],
+  [['CNBZ', 'Shipping lanes reopen; deploy volumes hit record highs'],
+   ['FOXISH NEWS', 'The supply chain is BACK, and it brought code with it'],
+   ['NPQ', 'Listeners ask: is it finished if it never ships?']],
+  [['CNBZ', "Word of mouth surges; analysts call growth 'spherical'"],
+   ['FOXISH NEWS', 'Everyone is suddenly talking about this, and we have questions'],
+   ['NPQ', 'How one small idea went everywhere at once']],
+  [['CNBZ', 'Markets tumble; investors flee toward a single point'],
+   ['FOXISH NEWS', "PANIC: it's all going down the drain, literally"],
+   ['NPQ', 'In uncertain times, some find comfort in a cone']],
+];
+const SHOUTS = [
+  ["THEY'RE RAISING RATES ON YOUR FOLDERS! STACK IT! STACK IT ALL!", "Chat, we are so stacking right now. Stack era."],
+  ["THE SHIPMENTS ARE REAL, FOLKS! OPEN THE PIPELINE!", "Ship it. Pipeline. This is not even a debate."],
+  ["IT'S GONE GLOBAL! THE NETWORK, PEOPLE, THE NETWORK!", "We're viral, chat. Network mode. Obviously."],
+  ["IT'S ALL COLLAPSING INTO ONE BIG FUNNEL! I TOLD YOU!", "Everything's crashing. Funnel it. Cope."],
+];
+const FACES = [
+  ['BRICK THUNDER · RANT RADIO', `<svg viewBox="0 0 120 120"><circle cx="60" cy="66" r="44" fill="#E2553F"/>
+    <path d="M20 52 Q60 4 100 52 Q60 26 20 52Z" fill="#5b3a29"/>
+    <path d="M32 50 L54 59 M88 50 L66 59" stroke="#3b1d14" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="46" cy="66" r="6" fill="#fff"/><circle cx="74" cy="66" r="6" fill="#fff"/>
+    <circle cx="47" cy="66" r="2.5" fill="#111"/><circle cx="73" cy="66" r="2.5" fill="#111"/>
+    <ellipse cx="60" cy="91" rx="19" ry="13" fill="#3b0d0d"/><path d="M45 84 H75" stroke="#fff" stroke-width="5"/>
+    <path d="M104 56 q9 9 2 17 q-8 -6 -2 -17Z" fill="#7dd3fc"/>
+    <rect x="2" y="78" width="16" height="26" rx="8" fill="#475569"/><path d="M10 104 V118" stroke="#475569" stroke-width="4"/></svg>`],
+  ['KYLE · LIVE', `<svg viewBox="0 0 120 120"><path d="M28 120 L44 96 H76 L92 120Z" fill="#1e293b"/><path d="M56 98 h8 l3 22 h-14z" fill="#b91c1c"/>
+    <ellipse cx="60" cy="58" rx="30" ry="38" fill="#F1D3B8"/>
+    <path d="M30 52 Q32 14 70 17 Q96 22 90 54 Q82 30 52 34 Q38 36 30 52Z" fill="#2b2118"/>
+    <path d="M40 55 h14 M66 53 h14" stroke="#2b2118" stroke-width="3" stroke-linecap="round"/>
+    <path d="M42 63 h10 M68 63 h10" stroke="#111" stroke-width="4" stroke-linecap="round"/>
+    <path d="M48 83 Q62 87 75 76" stroke="#7c2d12" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <rect x="22" y="52" width="9" height="18" rx="4" fill="#475569"/><path d="M26 70 q4 18 24 15" stroke="#475569" stroke-width="3" fill="none"/></svg>`],
+];
+const newsEl = document.getElementById('news'), shoutEl = document.getElementById('shout'), faceEl = document.getElementById('face'),
+      bubbleEl = document.getElementById('bubble'), rateEl = document.getElementById('rate'),
+      flowBtns = [...document.querySelectorAll('#flows button')];
+const latA = geo.attributes.aLattice, latB = geo.attributes.aLatticeB;
+let form = 0, formT = -1, regime = 0, regimeT = 0, regimeLen = 9, newsT = 99, newsI = 0, shoutT = 0, who = 0, lastRate = '';
+function setForm(f) {
+  if (f === form) return;
+  if (formT >= 0) { latA.array.set(latB.array); latA.needsUpdate = true; }     // finish a morph already under way
+  latB.array.set(FORMS[f].pts); latB.needsUpdate = true; uniforms.uForm.value = 0; formT = 0; form = f;
+  flowBtns.forEach((b, i) => b.classList.toggle('on', i === form));
+}
+flowBtns.forEach((b, i) => { b.onclick = () => setForm(i); b.classList.toggle('on', i === 0); });
+function shout() {
+  who = 1 - who;
+  shoutEl.classList.remove('on'); shoutEl.classList.toggle('right', who === 1); void shoutEl.offsetWidth;
+  faceEl.innerHTML = FACES[who][1]; bubbleEl.innerHTML = '<small>' + FACES[who][0] + '</small>' + SHOUTS[regime][who];
+  shoutEl.classList.add('on'); shoutT = 5.5;
+}
+function showNews() {
+  const n = NEWS[regime][newsI++ % 3];
+  newsEl.innerHTML = '<b>' + n[0] + '</b>' + n[1];
+}
+
+let dolly = 0, lastT = performance.now(), slowMs = 0, okFrames = 0, lastPhase = '', lastMoney = -1;
 renderer.setAnimationLoop(() => {
   const now = performance.now(), elapsed = now - lastT;
   if (elapsed < 12) return;                        // 120 Hz screens draw at 60, 144 Hz at 72; 60 Hz is untouched
@@ -379,6 +492,11 @@ renderer.setAnimationLoop(() => {
     P < 0.02 ? 'ENTROPY' : P < 1 ? 'SORTING BY KIND' : P < 2 ? 'EVERYTHING WHERE IT BELONGS' : 'PAYING OUT';
   if (phase !== lastPhase) phaseEl.textContent = lastPhase = phase;
 
+  if (formT >= 0) {                                 // morph to the chosen flow system
+    formT += dt / 1.1; uniforms.uForm.value = Math.min(formT, 1);
+    if (formT >= 1) { latA.array.set(latB.array); latA.needsUpdate = true; uniforms.uForm.value = 0; formT = -1; }
+  }
+  APEX += (FORMS[form].apex - APEX) * Math.min(1, dt * 3);
   const pay = THREE.MathUtils.smoothstep(P, 2.05, 2.6);
   const len = (vault.position.y - APEX) * pay;
   beam.scale.y = Math.max(len, 0.001); beam.position.y = APEX + len / 2;
@@ -395,7 +513,21 @@ renderer.setAnimationLoop(() => {
   // lift the view during the payout so the vault sits clear of the top edge
   const dy = (1.5 + 1.5 * THREE.MathUtils.smoothstep(P, 1.8, 2.6) - controls.target.y) * Math.min(1, dt * 3);
   controls.target.y += dy; camera.position.y += dy;
-  if (pay > 0.5 && (playing || P >= 2.99)) money += dt * 4200 * pay;
+  // ...and pull back a little so the whole flow system clears the control bar
+  const dz = (6 * THREE.MathUtils.smoothstep(P, 1.8, 2.6) - dolly) * Math.min(1, dt * 3);
+  if (Math.abs(dz) > 1e-4) { const off = camera.position.clone().sub(controls.target); off.setLength(off.length() + dz); camera.position.copy(controls.target).add(off); dolly += dz; }
+  // The market shifts every 11-17 seconds. The matching flow system pays 3x; any other pays 0.6x.
+  const live = pay > 0.5 && (playing || P >= 2.99), mult = form === regime ? 3 : 0.6;
+  if (live) {
+    regimeT += dt; newsT += dt;
+    if (regimeT > regimeLen) { regime = (regime + 1 + Math.floor(Math.random() * 3)) % 4; regimeT = 0; regimeLen = 11 + Math.random() * 6; newsT = 99; shout(); }
+    if (newsT > 5) { newsT = 0; showNews(); }
+    money += dt * 1400 * pay * mult;
+  }
+  newsEl.classList.toggle('on', live);
+  if (shoutT > 0) { shoutT -= dt; if (shoutT <= 0 || !live) { shoutT = 0; shoutEl.classList.remove('on'); } }
+  const rate = live ? '+$' + Math.round(1400 * mult).toLocaleString() + '/s · ' + (mult > 1 ? 'IN SYNC ×3' : 'OFF TREND') : '';
+  if (rate !== lastRate) { lastRate = rate; rateEl.textContent = rate; rateEl.className = !live ? '' : mult > 1 ? 'sync' : 'off'; }
   const m = Math.floor(money); if (m !== lastMoney) { lastMoney = m; moneyEl.textContent = '$' + m.toLocaleString(); }
 
   if (P > 0.05 && (playing || pay > 0.5)) { tickAcc += dt; if (tickAcc > 0.16) { tickAcc = 0; tick(); } }
@@ -405,7 +537,7 @@ renderer.setAnimationLoop(() => {
 });
 
 addEventListener('resize', applySize);
-window.__engine = { uniforms, setP, renderer, stats: () => ({ lowPower: LOW_POWER, renderScale, qStep, width: renderer.domElement.width, height: renderer.domElement.height }) };
+window.__engine = { uniforms, setP, renderer, setForm, setRegime: r => { regime = r; regimeT = 0; newsT = 99; shout(); }, stats: () => ({ lowPower: LOW_POWER, renderScale, qStep, width: renderer.domElement.width, height: renderer.domElement.height }) };
 </script>
 </body>
 </html>
