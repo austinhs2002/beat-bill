@@ -23,6 +23,8 @@ Three.js from a CDN.
 - **Flow** (keys 1-4) switches the ordered shape: Stack, Pipeline, Network or Funnel.
   During the payout the market shifts every 11-17 seconds; the matching shape pays 3x
   and the others pay 0.6x. The news strip and the shouting commentators tell you which.
+- **Sound** is generated in the browser (no audio files) and starts on your first click or key
+  press; the Sound button mutes it.
 - **Absorb Bill's Brain** is the opening gag.
 
 The news outlets and commentators are invented parodies, not real broadcasters or people.

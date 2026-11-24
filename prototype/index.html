@@ -52,9 +52,21 @@
     opacity: 0; transition: opacity .4s; pointer-events: none; }
   #news.on { opacity: 1; }
   #news b { color: var(--gold); letter-spacing: .12em; margin-right: 10px; font-size: .85em; }
-  #flows { display: flex; gap: 6px; justify-content: center; align-items: center; flex-wrap: wrap; font-size: 10px; letter-spacing: .14em; }
-  #flows button.on { background: var(--emerald); color: #06140f; border-color: transparent; font-weight: 700; }
-  #flows kbd { font: inherit; opacity: .55; margin-right: 6px; }
+  #flows { --lift: clamp(12px, 1.5vw, 24px); display: flex; gap: clamp(8px, 1vw, 18px); justify-content: center; align-items: flex-end;
+    flex: 0 1 auto; padding-top: var(--lift); pointer-events: none; }
+  #flows button { --c: #3B82F6; --y: 0px; pointer-events: auto; font-size: clamp(13px, 1.25vw, 24px); font-weight: 700; letter-spacing: .12em;
+    padding: clamp(12px, 1.2vw, 22px) clamp(14px, 1.6vw, 32px); border-radius: 14px; border: 2px solid var(--c); color: #fff;
+    background: color-mix(in srgb, var(--c) 24%, #0b0a18); white-space: nowrap;
+    transform: translateY(var(--y)) rotate(-3deg); animation: rock 4.2s ease-in-out infinite alternate; }
+  #flows button:hover { background: color-mix(in srgb, var(--c) 45%, #0b0a18); }
+  #flows button.on { background: var(--c); color: #0b0a18; box-shadow: 0 0 28px var(--c); }
+  #flows button[data-f="0"] { --c: #3B82F6; --y: calc(-1 * var(--lift)); }
+  #flows button[data-f="1"] { --c: #EF4444; animation-delay: -1.1s; animation-duration: 4.9s; }
+  #flows button[data-f="2"] { --c: #22C55E; animation-delay: -2.3s; animation-duration: 3.8s; }
+  #flows button[data-f="3"] { --c: #FACC15; --y: calc(-1 * var(--lift)); animation-delay: -3.2s; animation-duration: 5.3s; }
+  @keyframes rock { from { transform: translateY(var(--y)) rotate(-3deg); } to { transform: translateY(var(--y)) rotate(3deg); } }
+  @media (prefers-reduced-motion: reduce) { #flows button { animation: none; transform: translateY(var(--y)); } }
+  #flows kbd { font: inherit; opacity: .6; margin-right: 8px; }
   #shout { position: fixed; top: 44%; left: 16px; transform: translate(-130%, -50%); display: flex; align-items: center; gap: 10px;
     max-width: min(460px, 82vw); transition: transform .35s cubic-bezier(.2, 1.4, .4, 1); pointer-events: none; z-index: 2; }
   #shout.right { left: auto; right: 16px; flex-direction: row-reverse; transform: translate(130%, -50%); }
@@ -74,9 +86,10 @@
     #legend div { gap: 8px; } #legend div:last-child { display: none; }
     #ticker { width: auto; height: calc(2 * 1.65em + 16px); padding: 8px 12px; order: -1; } #ticker div:nth-child(n+3) { display: none; }
     #stops { margin: -4px 0 0; }
+    #flows button { flex: 1 1 0; padding-left: 4px; padding-right: 4px; } #flows kbd { display: none; }
     #title h1 { font-size: 13px; letter-spacing: .14em; } #phase { font-size: 10px; letter-spacing: .1em; max-width: 45vw; }
   }
-  @media (max-height: 540px) { #side { display: none; } }
+  @media (max-height: 540px) { #legend, #ticker { display: none; } }
 </style>
 <script type="importmap">
 { "imports": {
@@ -91,16 +104,16 @@
 <div id="news" class="glass"></div>
 <div id="shout"><div id="face"></div><div id="bubble"></div></div>
 <div id="dock">
-<div id="side"><div id="legend" class="glass"></div><div id="ticker" class="glass"></div></div>
+<div id="side"><div id="legend" class="glass"></div><div id="flows"><button data-f="0"><kbd>1</kbd>STACK</button><button data-f="1"><kbd>2</kbd>PIPELINE</button><button data-f="2"><kbd>3</kbd>NETWORK</button><button data-f="3"><kbd>4</kbd>FUNNEL</button></div><div id="ticker" class="glass"></div></div>
 <div id="bar" class="glass">
   <div id="scrubrow"><span>CHAOS</span><input id="scrub" type="range" min="0" max="3" step="0.001" value="0"><span>ORDER</span></div>
   <div id="stops"><button data-p="0">ENTROPY</button><button data-p="1">RINGS</button><button data-p="2">LATTICE</button><button data-p="3">PAYOUT</button></div>
-  <div id="flows"><span>FLOW</span><button data-f="0"><kbd>1</kbd>STACK</button><button data-f="1"><kbd>2</kbd>PIPELINE</button><button data-f="2"><kbd>3</kbd>NETWORK</button><button data-f="3"><kbd>4</kbd>FUNNEL</button></div>
   <div id="btns">
     <button class="primary" id="go">ORGANIZE</button>
     <button id="reset">BACK TO CHAOS</button>
     <button id="brain">ABSORB BILL'S BRAIN</button>
     <label class="btn">USE MY FILES<input id="dir" type="file" webkitdirectory multiple hidden></label>
+    <button id="snd">SOUND OFF</button>
   </div>
 </div>
 </div>
@@ -400,6 +413,52 @@ function tick(dt) {
   while (ticker.children.length > 6) ticker.lastChild.remove();
 }
 
+// ---------- sound: a generated machine murmur, no audio files ----------
+// A low filtered drone plus short blips on a 7-tone scale. Blips are random in chaos and fall into a
+// repeating sequence as things get organized. Starts on the first click or key press (browsers require that).
+let actx = null, master = null, soundOn = false, seqI = 0;
+const sndBtn = document.getElementById('snd');
+const note = n => 220 * Math.pow(2, n / 7), SEQ = [0, 2, 3, 5, 6, 5, 3, 2];
+function startSound() {
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  master = actx.createGain(); master.gain.value = 0;
+  const delay = actx.createDelay(1), fb = actx.createGain(), damp = actx.createBiquadFilter();
+  delay.delayTime.value = 0.37; fb.gain.value = 0.5; damp.type = 'lowpass'; damp.frequency.value = 2200;
+  master.connect(actx.destination); master.connect(delay); delay.connect(damp); damp.connect(fb); fb.connect(delay); damp.connect(actx.destination);
+  const df = actx.createBiquadFilter(); df.type = 'lowpass'; df.frequency.value = 320; df.Q.value = 7; df.connect(master);
+  [55, 55.6, 82.1, 110.3].forEach((f, i) => {
+    const o = actx.createOscillator(), g = actx.createGain(); o.type = i % 2 ? 'sawtooth' : 'triangle'; o.frequency.value = f;
+    g.gain.value = 0.16; o.connect(g); g.connect(df); o.start(); });
+  const lfo = actx.createOscillator(), lg = actx.createGain(); lfo.frequency.value = 0.07; lg.gain.value = 200;
+  lfo.connect(lg); lg.connect(df.frequency); lfo.start();
+  setInterval(soundTick, 115);
+}
+function blip(f, dur, type, vol, bend) {
+  const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain(), pan = actx.createStereoPanner();
+  o.type = type; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * bend, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  pan.pan.value = Math.random() * 2 - 1; o.connect(g); g.connect(pan); pan.connect(master); o.start(t); o.stop(t + dur + 0.03);
+}
+function soundTick() {
+  if (!soundOn || document.hidden) return;
+  const order = P / 3;
+  if (Math.random() < 0.3 + order * 0.5) {
+    const n = Math.random() < order ? SEQ[seqI++ % SEQ.length] + 7 * (seqI % 16 < 8 ? 0 : 1) : Math.floor(Math.random() * 28) - 4;
+    blip(note(n), 0.05 + Math.random() * 0.12, Math.random() < 0.5 ? 'sine' : 'square', 0.04 + Math.random() * 0.04, 0.6 + Math.random() * 1.2);
+  }
+  if (Math.random() < 0.025)                                        // a burst of "data"
+    for (let k = 0; k < 8; k++) setTimeout(() => soundOn && blip(note(14 + Math.floor(Math.random() * 14)), 0.03, 'square', 0.03, 1), k * 38);
+}
+function setSound(on) {
+  soundOn = on;
+  if (on && !actx) startSound();
+  if (actx) { if (on) actx.resume(); master.gain.setTargetAtTime(on ? 0.22 : 0, actx.currentTime, on ? 0.5 : 0.08); }
+  sndBtn.textContent = on ? 'SOUND ON' : 'SOUND OFF';
+}
+sndBtn.onclick = () => setSound(!soundOn);
+const firstGesture = e => { if (!actx && !(e.target && e.target.closest && e.target.closest('#snd'))) setSound(true); };
+addEventListener('pointerdown', firstGesture, { once: true }); addEventListener('keydown', firstGesture, { once: true });
+
 // ---------- the market: which flow system pays best right now ----------
 // Outlets and characters are invented parodies; any resemblance to real broadcasters is a joke.
 const NEWS = [
@@ -449,6 +508,7 @@ function setForm(f) {
   if (formT >= 0) { latA.array.set(latB.array); latA.needsUpdate = true; }     // finish a morph already under way
   latB.array.set(FORMS[f].pts); latB.needsUpdate = true; uniforms.uForm.value = 0; formT = 0; form = f;
   flowBtns.forEach((b, i) => b.classList.toggle('on', i === form));
+  if (actx && soundOn) blip(90, 0.9, 'sawtooth', 0.07, 6);
 }
 flowBtns.forEach((b, i) => { b.onclick = () => setForm(i); b.classList.toggle('on', i === 0); });
 function shout() {
