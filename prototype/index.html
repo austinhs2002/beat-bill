@@ -97,6 +97,50 @@
     #title h1 { font-size: 13px; letter-spacing: .14em; } #phase { font-size: 10px; letter-spacing: .1em; max-width: 45vw; }
   }
   @media (max-height: 540px) { #legend, #ticker { display: none; } }
+  #play { background: #34D399; color: #06140f; border-color: transparent; font-weight: 800; }
+  #sortHud { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); display: none; align-items: center; gap: clamp(10px, 1.6vw, 26px); padding: 10px 16px; z-index: 4; white-space: nowrap; }
+  #sortHud.on { display: flex; }
+  .hcell { display: flex; flex-direction: column; align-items: center; min-width: 56px; }
+  .hcell small { font-size: 10px; letter-spacing: .18em; opacity: .6; }
+  .hcell b { font-size: clamp(16px, 1.8vw, 28px); font-variant-numeric: tabular-nums; }
+  .hcell.wx { min-width: 160px; }
+  .hcell.wx small { color: #C4B5FD; opacity: .9; }
+  .pbar { width: 100%; height: 6px; border-radius: 3px; background: rgba(255,255,255,.12); margin-top: 4px; overflow: hidden; }
+  .pbar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #34D399, #FBBF24, #EF4444); transition: width .15s; }
+  #hExit { font-size: 11px; padding: 6px 10px; }
+  .overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(5,5,11,.55); z-index: 5; padding: 16px; box-sizing: border-box; }
+  .overlay.on { display: flex; }
+  .overlay .card { max-width: 540px; width: 100%; padding: clamp(16px, 2.4vw, 30px); box-sizing: border-box; }
+  .overlay h2 { margin: 0 0 10px; letter-spacing: .24em; font-size: clamp(20px, 2.6vw, 34px); }
+  .overlay p { line-height: 1.45; margin: 8px 0; font-size: clamp(13px, 1.1vw, 16px); }
+  .overlay ul { list-style: none; padding: 0; margin: 10px 0; font-size: clamp(13px, 1.1vw, 16px); }
+  .overlay li { padding: 4px 0; }
+  .overlay li i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 10px; }
+  .overlay .dim { opacity: .65; font-size: 13px; }
+  .overlay .row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; flex-wrap: wrap; }
+  .overlay button { font-size: 13px; padding: 10px 16px; }
+  #eStats { display: grid; grid-template-columns: 1fr auto; gap: 6px 18px; font-size: clamp(13px, 1.2vw, 17px); margin-top: 10px; }
+  #eStats b { font-variant-numeric: tabular-nums; text-align: right; }
+  #count { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; font-size: clamp(90px, 16vw, 220px); font-weight: 800; text-shadow: 0 0 40px #8B5CF6; pointer-events: none; z-index: 5; }
+  #count.on { display: flex; }
+  #reticle { position: fixed; left: 0; top: 0; width: 44px; height: 44px; border: 2px solid #FBBF24; border-radius: 50%; box-shadow: 0 0 18px #FBBF24; display: none; pointer-events: none; z-index: 3; }
+  #tip { position: fixed; left: 0; top: 0; display: none; padding: 5px 9px; font: 12px ui-monospace, Consolas, monospace; background: rgba(9,8,20,.92); border: 1px solid rgba(139,92,246,.5); border-radius: 7px; pointer-events: none; white-space: nowrap; z-index: 4; }
+  #flash { position: fixed; inset: 0; opacity: 0; pointer-events: none; background: radial-gradient(circle, #fff 0%, #a5b4fc 45%, rgba(99,102,241,.25) 100%); z-index: 6; }
+  #flash.go { animation: fl .9s ease-out; }
+  @keyframes fl { 0% { opacity: .85; } 100% { opacity: 0; } }
+  #labels { position: fixed; inset: 0; pointer-events: none; z-index: 3; }
+  .dl { position: fixed; left: 0; top: 0; width: clamp(150px, 15vw, 230px); box-sizing: border-box; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--c); background: rgba(9,8,20,.88); display: none; }
+  .dl.on { display: block; }
+  .dl.hot { box-shadow: 0 0 22px var(--c); }
+  .dl b { color: var(--c); letter-spacing: .14em; font-size: 13px; }
+  .dl small { display: block; opacity: .6; font-size: 10px; margin-bottom: 4px; }
+  .dl em { font-style: normal; font-size: 11px; }
+  .dl ul { margin: 4px 0 0; padding: 0; list-style: none; font: 11px ui-monospace, Consolas, monospace; }
+  .dl li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .85; }
+  .pop { position: fixed; left: 0; top: 0; transform: translate(-50%, -50%); font-weight: 900; letter-spacing: .06em; font-size: clamp(18px, 2vw, 30px); text-shadow: 0 2px 8px #000; white-space: nowrap; animation: popUp 1.1s ease-out forwards; }
+  @keyframes popUp { from { opacity: 1; } to { opacity: 0; transform: translate(-50%, -50%) translateY(-70px); } }
+  @media (max-width: 720px) { #sortHud { top: 96px; flex-wrap: wrap; width: calc(100vw - 24px); justify-content: center; } }
+  @media (max-width: 720px) { .dl { width: 92px; padding: 5px 6px; } .dl small, .dl ul { display: none; } .dl b { font-size: 10px; letter-spacing: .08em; } .dl em { display: block; font-size: 10px; } }
 </style>
 <script type="importmap">
 { "imports": {
@@ -118,6 +162,7 @@
   <div id="stops"><button data-p="0">ENTROPY</button><button data-p="1">RINGS</button><button data-p="2">LATTICE</button><button data-p="3">PAYOUT</button></div>
   <div id="btns">
     <button class="primary" id="go">ORGANIZE</button>
+    <button id="play">PLAY · SORT SHIFT</button>
     <button id="reset">BACK TO CHAOS</button>
     <button id="brain">ABSORB BILL'S BRAIN</button>
     <label class="btn">USE MY FILES<input id="dir" type="file" webkitdirectory multiple hidden></label>
@@ -126,6 +171,36 @@
 </div>
 </div>
 
+<div id="sortHud" class="glass">
+  <div class="hcell"><small>SHIFT</small><b id="hTime">1:30</b></div>
+  <div class="hcell"><small>SCORE</small><b id="hScore">0</b></div>
+  <div class="hcell"><small>COMBO</small><b id="hCombo">×1 · 0 IN A ROW</b></div>
+  <div class="hcell wx"><small id="hWx">WEATHER · CALM</small><div class="pbar"><i id="hPbar"></i></div></div>
+  <div class="hcell"><small>LEFT</small><b id="hLeft">0</b></div>
+  <button id="hExit">EXIT</button>
+</div>
+<div id="sortIntro" class="overlay"><div class="card glass">
+  <h2>SORT SHIFT</h2>
+  <p>Click a file to grab it with the crane. Click the drawer it belongs in. Right-click or Esc drops it back.</p>
+  <ul>
+    <li><i style="background:#818CF8"></i>CONCEPT: ideas, sketches, notes</li>
+    <li><i style="background:#A855F7"></i>SPEC: plans, PDFs, spreadsheets</li>
+    <li><i style="background:#38BDF8"></i>BUILD: code, configs, tests</li>
+    <li><i style="background:#FBBF24"></i>REVENUE: invoices, receipts, payouts</li>
+  </ul>
+  <p class="dim">Every correct file pays out, and combos multiply it. Misfile and the weather turns. Let the pressure peak and it becomes a storm.</p>
+  <div class="row"><button id="iBack">BACK</button><button id="iGo" class="primary">START SHIFT</button></div>
+</div></div>
+<div id="count"></div>
+<div id="sortEnd" class="overlay"><div class="card glass">
+  <h2 id="eTitle">SHIFT OVER</h2>
+  <div id="eStats"></div>
+  <div class="row"><button id="eBack">BACK TO SHOWCASE</button><button id="eAgain" class="primary">PLAY AGAIN</button></div>
+</div></div>
+<div id="reticle"></div>
+<div id="tip"></div>
+<div id="flash"></div>
+<div id="labels"></div>
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -249,14 +324,14 @@ const metaAttr = new THREE.InstancedBufferAttribute(aMeta, 4);
 geo.setAttribute('aMeta', metaAttr);
 
 const uniforms = {
-  uTime: { value: 0 }, uP: { value: 0 }, uBrain: { value: 1 }, uSolo: { value: -1 }, uForm: { value: 0 },
+  uTime: { value: 0 }, uP: { value: 0 }, uBrain: { value: 1 }, uSolo: { value: -1 }, uForm: { value: 0 }, uWobble: { value: 0.7 },
   uCols: { value: STAGES.map(s => new THREE.Color(s.hex)) },
 };
 const mat = new THREE.ShaderMaterial({
   uniforms,
   vertexShader: /* glsl */`
-    attribute vec3 aChaos, aLattice, aLatticeB, aBrain, aAxis; attribute vec4 aMeta; attribute float aCrease;
-    uniform float uTime, uP, uBrain, uSolo, uForm; uniform vec3 uCols[4];
+    attribute vec3 aChaos, aLattice, aLatticeB, aBrain, aAxis; attribute vec4 aMeta; attribute float aCrease; attribute vec4 aHold;
+    uniform float uTime, uP, uBrain, uSolo, uForm, uWobble; uniform vec3 uCols[4];
     varying vec3 vCol; varying vec3 vN; varying vec3 vW; varying float vGlow, vPay, vOrder, vDim;
     mat3 rot(vec3 a, float t) { float c = cos(t), s = sin(t), o = 1. - c;
       return mat3(o*a.x*a.x+c, o*a.x*a.y+a.z*s, o*a.z*a.x-a.y*s,
@@ -272,7 +347,7 @@ const mat = new THREE.ShaderMaterial({
 
       // 0: unsorted turbulence (or a borrowed brain)
       vec3 c = aChaos;
-      c += .7 * vec3(sin(uTime*.7 + c.y*.8 + seed*6.), cos(uTime*.6 + c.z*.7 + seed*4.), sin(uTime*.5 + c.x*.9));
+      c += uWobble * vec3(sin(uTime*.7 + c.y*.8 + seed*6.), cos(uTime*.6 + c.z*.7 + seed*4.), sin(uTime*.5 + c.x*.9));
       c = rot(Y, uTime * .06 * (.5 + seed)) * (c - vec3(0., 1.5, 0.)) + vec3(0., 1.5, 0.);
       c = mix(aBrain, c, uBrain) + normalize(aBrain - vec3(0., 1.5, 0.)) * sin(uBrain * 3.14159) * 3.5;   // shatter burst
 
@@ -302,7 +377,8 @@ const mat = new THREE.ShaderMaterial({
       vPay = smoothstep(2., 2.5, uP) * pow(max(0., sin(la.y * .8 - uTime * 4.)), 40.);
       vN = normalize(nrm + aAxis * .15 * e2c); vW = p + local; vOrder = e2c;
       vDim = (uSolo < -.5 || abs(type - uSolo) < .5) ? 1. : .1;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(p + local, 1.);
+      vec3 q = mix(p, aHold.xyz, aHold.w);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(q + local, 1.);
     }`,
   fragmentShader: /* glsl */`
     varying vec3 vCol; varying vec3 vN; varying vec3 vW; varying float vGlow, vPay, vOrder, vDim;
@@ -406,6 +482,7 @@ document.getElementById('go').onclick = () => { if (P >= 2.99) setP(0); playing 
 document.getElementById('reset').onclick = () => { goal = null; playing = false; brainT = -1; uniforms.uBrain.value = 1; setP(0); money = 0; ticker.innerHTML = ''; };
 document.getElementById('brain').onclick = () => { goal = null; playing = false; setP(0); money = 0; ticker.innerHTML = ''; uniforms.uBrain.value = 0; brainT = 0; };
 addEventListener('keydown', e => {
+  if (SORT.on) { if (e.key === 'Escape') cancelHeld(); return; }
   if (e.code === 'Space') { e.preventDefault(); playing = !playing; }
   if (e.key >= '1' && e.key <= '4') setForm(+e.key - 1);
 });
@@ -685,7 +762,7 @@ renderer.setAnimationLoop(() => {
 
   const phase = brainT >= 0 ? (brainT < 1.6 ? 'LEGACY BRAIN DETECTED' : 'ABSORBING') :
     P < 0.02 ? 'ENTROPY' : P < 1 ? 'SORTING BY KIND' : P < 2 ? 'EVERYTHING WHERE IT BELONGS' : 'PAYING OUT';
-  if (phase !== lastPhase) phaseEl.textContent = lastPhase = phase;
+  if (!SORT.on && phase !== lastPhase) phaseEl.textContent = lastPhase = phase;
 
   if (formT >= 0) {                                 // morph to the chosen flow system
     formT += dt / 1.1; uniforms.uForm.value = Math.min(formT, 1);
@@ -706,10 +783,10 @@ renderer.setAnimationLoop(() => {
   bank.classList.toggle('hot', pay > 0.5);
   stops.forEach((b, i) => b.classList.toggle('on', Math.round(P) === i));
   // lift the view during the payout so the vault sits clear of the top edge
-  const dy = (1.5 + 1.5 * THREE.MathUtils.smoothstep(P, 1.8, 2.6) - controls.target.y) * Math.min(1, dt * 3);
+  const dy = SORT.on ? 0 : (1.5 + 1.5 * THREE.MathUtils.smoothstep(P, 1.8, 2.6) - controls.target.y) * Math.min(1, dt * 3);
   controls.target.y += dy; camera.position.y += dy;
   // ...and pull back a little so the whole flow system clears the control bar
-  const dz = (6 * THREE.MathUtils.smoothstep(P, 1.8, 2.6) - dolly) * Math.min(1, dt * 3);
+  const dz = SORT.on ? 0 : (6 * THREE.MathUtils.smoothstep(P, 1.8, 2.6) - dolly) * Math.min(1, dt * 3);
   if (Math.abs(dz) > 1e-4) { const off = camera.position.clone().sub(controls.target); off.setLength(off.length() + dz); camera.position.copy(controls.target).add(off); dolly += dz; }
   // The market shifts every 11-17 seconds. The matching flow system pays 3x; any other pays 0.6x.
   const live = pay > 0.5 && (playing || P >= 2.99), mult = form === regime ? 3 : 0.6;
@@ -719,7 +796,7 @@ renderer.setAnimationLoop(() => {
     if (shoutT <= 0) { if (cuePending) { cuePending = false; shout(true); } else if (fillT <= 0) shout(false); }
     money += dt * 1400 * pay * mult;
   }
-  if (shoutT > 0) { shoutT -= dt; if (shoutT <= 0 || !live) { shoutT = 0; shoutEl.classList.remove('on'); } }
+  if (shoutT > 0) { shoutT -= dt; if (shoutT <= 0 || (!live && !SORT.on)) { shoutT = 0; shoutEl.classList.remove('on'); } }
   const rate = live ? '+$' + Math.round(1400 * mult).toLocaleString() + '/s · ' + (mult > 1 ? 'IN SYNC ×3' : 'OFF TREND') : '';
   if (rate !== lastRate) { lastRate = rate; rateEl.textContent = rate; rateEl.className = !live ? '' : mult > 1 ? 'sync' : 'off'; }
   const m = Math.floor(money); if (m !== lastMoney) { lastMoney = m; moneyEl.textContent = '$' + m.toLocaleString(); }
@@ -727,11 +804,365 @@ renderer.setAnimationLoop(() => {
   if (P > 0.05 && (playing || pay > 0.5)) { tickAcc += dt; if (tickAcc > 0.16) { tickAcc = 0; tick(); } }
 
   controls.update();
+  if (SORT.on) updateSort(dt);
+  updateBurst(dt);
   composer.render();
 });
 
 addEventListener('resize', applySize);
+// ---------- SORT SHIFT: grab real files with the crane and drop them into the right drawer ----------
+const SORT = { on: false, state: 'idle', shift: 90, cd: 0, goT: 0, active: [], correct: 0, mistakes: 0, combo: 0, bestCombo: 0,
+  storms: 0, earned: 0, score: 0, pressure: 20, spike: 0, held: null, pointer: null, hover: -1, dropOver: -1, flyers: [], best: 0 };
+try { SORT.best = +localStorage.getItem('orderEngineBest') || 0; } catch (e) {}
+const ACTIVE_N = 360, SHIFT_SECS = 90, DRAWER_Y = -4.6, FALLBACK = ['idea_notes.md', 'spec_v2.pdf', 'api.ts', 'invoice_1001.pdf'];
+const DRAWERS = [
+  { t: 0, name: 'CONCEPT', rule: 'ideas · sketches · notes', col: '#818CF8', x: -5.85 },
+  { t: 1, name: 'SPEC', rule: 'plans · PDFs · sheets', col: '#A855F7', x: -1.95 },
+  { t: 2, name: 'BUILD', rule: 'code · configs · tests', col: '#38BDF8', x: 1.95 },
+  { t: 3, name: 'REVENUE', rule: 'invoices · receipts · payouts', col: '#FBBF24', x: 5.85 },
+];
+const sortName = new Array(N);
+const holdArr = new Float32Array(N * 4), holdAttr = new THREE.InstancedBufferAttribute(holdArr, 4);
+geo.setAttribute('aHold', holdAttr);
+const labelsEl = document.getElementById('labels');
+scene.add(new THREE.AmbientLight(0x8b8bd6, 0.6));
+const sun = new THREE.DirectionalLight(0xffffff, 1.4); sun.position.set(4, 8, 12); scene.add(sun);
+
+// filing drawers: a cabinet body with a coloured front that slides out when something is filed
+const drawers = DRAWERS.map(d => {
+  const g = new THREE.Group(); g.position.set(d.x, DRAWER_Y, 0); g.visible = false; scene.add(g);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(3.6, 2.4, 2.2), new THREE.MeshStandardMaterial({ color: 0x0c0a1e, metalness: .5, roughness: .5 }));
+  const front = new THREE.Mesh(new THREE.BoxGeometry(3.4, 2.2, .16), new THREE.MeshStandardMaterial({ color: new THREE.Color(d.col).multiplyScalar(.3),
+    emissive: new THREE.Color(d.col), emissiveIntensity: .25, metalness: .7, roughness: .3 }));
+  front.position.z = 1.18;
+  const knob = new THREE.Mesh(new THREE.BoxGeometry(.9, .12, .1), new THREE.MeshBasicMaterial({ color: 0xE2E8F0 }));
+  knob.position.set(0, .5, 1.3);
+  g.add(body, front, knob);
+  const lab = document.createElement('div'); lab.className = 'dl'; lab.style.setProperty('--c', d.col);
+  lab.innerHTML = '<b>' + d.name + '</b><small>' + d.rule + '</small><em>0 filed</em><ul></ul>';
+  labelsEl.appendChild(lab);
+  return { ...d, g, front, lab, count: 0, names: [], open: 0, openT: 0, shake: 0 };
+});
+const cardMats = DRAWERS.map(d => new THREE.MeshBasicMaterial({ color: new THREE.Color(d.col) }));
+
+// the crane: a white card in the claw, a gold cable up to the top of the screen
+const heldMesh = new THREE.Mesh(card, new THREE.MeshBasicMaterial({ color: 0xffffff }));
+heldMesh.scale.setScalar(2.4); heldMesh.visible = false; heldMesh.frustumCulled = false; scene.add(heldMesh);
+const claw = new THREE.Mesh(new THREE.OctahedronGeometry(.28), new THREE.MeshBasicMaterial({ color: 0xFBBF24 }));
+claw.visible = false; scene.add(claw);
+const cableGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
+const cable = new THREE.Line(cableGeo, new THREE.LineBasicMaterial({ color: 0xFBBF24, transparent: true, opacity: .65 }));
+cable.visible = false; cable.frustumCulled = false; scene.add(cable);
+
+// filing sparks (a fixed pool, reused)
+const BN = 90, bPos = new Float32Array(BN * 3), bVel = new Float32Array(BN * 3), bLife = new Float32Array(BN);
+for (let j = 0; j < BN; j++) bPos[j * 3 + 1] = -999;
+const bGeo = new THREE.BufferGeometry(); bGeo.setAttribute('position', new THREE.BufferAttribute(bPos, 3));
+const bPts = new THREE.Points(bGeo, new THREE.PointsMaterial({ color: 0xFFE066, size: .2, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+bPts.frustumCulled = false; scene.add(bPts);
+let bNext = 0;
+function burst(x, y, z) {
+  for (let k = 0; k < 14; k++) {
+    const j = bNext, a = Math.random() * Math.PI * 2, s = 2 + Math.random() * 4; bNext = (bNext + 1) % BN;
+    bPos[j * 3] = x; bPos[j * 3 + 1] = y; bPos[j * 3 + 2] = z;
+    bVel[j * 3] = Math.cos(a) * s; bVel[j * 3 + 1] = 1 + Math.random() * 4; bVel[j * 3 + 2] = Math.sin(a) * s * .5;
+    bLife[j] = .8 + Math.random() * .5;
+  }
+}
+function updateBurst(dt) {
+  for (let j = 0; j < BN; j++) {
+    if (bLife[j] <= 0) continue;
+    bLife[j] -= dt; bVel[j * 3 + 1] -= 9 * dt;
+    bPos[j * 3] += bVel[j * 3] * dt; bPos[j * 3 + 1] += bVel[j * 3 + 1] * dt; bPos[j * 3 + 2] += bVel[j * 3 + 2] * dt;
+    if (bLife[j] <= 0) bPos[j * 3 + 1] = -999;
+  }
+  bGeo.attributes.position.needsUpdate = true;
+}
+
+const _pp = new THREE.Vector3(), _v = new THREE.Vector3(), _ray = new THREE.Raycaster(), _pl = new THREE.Plane(new THREE.Vector3(0, 0, 1), -4),
+      _hit = new THREE.Vector3(), _ndc = new THREE.Vector2();
+// mirrors the vertex shader's wobble and spin for a pile card (the gem is off in this mode), so clicks land on what you see
+function pileXYZ(i, T) {
+  const seed = aMeta[i * 4 + 1], w = uniforms.uWobble.value, sx = aChaos[i * 3], sy = aChaos[i * 3 + 1], sz = aChaos[i * 3 + 2];
+  const x = sx + w * Math.sin(T * .7 + sy * .8 + seed * 6), y = sy + w * Math.cos(T * .6 + sz * .7 + seed * 4), z = sz + w * Math.sin(T * .5 + sx * .9);
+  const a = T * .06 * (.5 + seed), c = Math.cos(a), s = Math.sin(a);
+  return _pp.set(c * x + s * z, y, -s * x + c * z);
+}
+function toScreen(x, y, z) { _v.set(x, y, z).project(camera); return [(_v.x + 1) / 2 * innerWidth, (1 - _v.y) / 2 * innerHeight, _v.z]; }
+function nearestPile(x, y) {
+  const T = uniforms.uTime.value; let best = -1, bd = 900;
+  for (const i of SORT.active) {
+    pileXYZ(i, T); const s = toScreen(_pp.x, _pp.y, _pp.z); if (s[2] > 1) continue;
+    const dx = s[0] - x, dy = s[1] - y, d2 = dx * dx + dy * dy; if (d2 < bd) { bd = d2; best = i; }
+  }
+  return best;
+}
+function drawerAt(x, y) {
+  for (let k = 0; k < drawers.length; k++) {
+    const d = drawers[k], xs = [], ys = [];
+    for (const dx of [-1.95, 1.95]) for (const dy of [-1.5, 1.5]) for (const dz of [-1.3, 1.3]) {
+      const s = toScreen(d.x + dx, DRAWER_Y + dy, dz); xs.push(s[0]); ys.push(s[1]);
+    }
+    if (x >= Math.min(...xs) && x <= Math.max(...xs) && y >= Math.min(...ys) && y <= Math.max(...ys)) return k;
+  }
+  return -1;
+}
+function pointerWorld() {
+  const p = SORT.pointer; if (!p) return null;
+  _ndc.set(p.x / innerWidth * 2 - 1, -(p.y / innerHeight) * 2 + 1); _ray.setFromCamera(_ndc, camera);
+  return _ray.ray.intersectPlane(_pl, _hit);
+}
+function setHidden(i, on) {
+  if (on) { holdArr[i * 4] = 0; holdArr[i * 4 + 1] = -500; holdArr[i * 4 + 2] = 0; holdArr[i * 4 + 3] = 1; }
+  else holdArr[i * 4 + 3] = 0;
+  holdAttr.needsUpdate = true;
+}
+function sampleName(t) { const b = buckets[t]; return b && b.length ? pick(b) : FALLBACK[t]; }
+function updateLabel(d) {
+  d.lab.querySelector('em').textContent = d.count + ' filed';
+  d.lab.querySelector('ul').innerHTML = d.names.map(n => '<li>' + String(n).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]) + '</li>').join('');
+}
+function pop(text, x, y, col) {
+  const el = document.createElement('div'); el.className = 'pop'; el.textContent = text;
+  el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.color = col; labelsEl.appendChild(el);
+  setTimeout(() => el.remove(), 1150);
+}
+function say(w, text) {
+  who = w; shoutEl.classList.remove('on'); shoutEl.classList.toggle('right', who === 1); void shoutEl.offsetWidth;
+  faceEl.innerHTML = FACES[who][1]; bubbleEl.innerHTML = '<small>' + FACES[who][0] + '</small>' + text;
+  shoutEl.classList.add('on'); shoutT = Math.max(2.4, holdFor(text));
+}
+function tone(k) {
+  if (!actx || !soundOn) return;
+  if (k === 'ok') { blip(660, .12, 'square', .07, 1.5); setTimeout(() => blip(990, .16, 'square', .06, 1.2), 70); }
+  else if (k === 'bad') blip(140, .32, 'sawtooth', .12, .45);
+  else if (k === 'storm') blip(52, 1.6, 'sawtooth', .22, .35);
+  else blip(440, .05, 'triangle', .05, 1.3);
+}
+
+// flying cards: a short ease from the crane to a drawer (or back to the pile)
+function fly(from, toFn, dur, done, t) {
+  const m = new THREE.Mesh(card, cardMats[t]); m.scale.setScalar(2.4); m.frustumCulled = false; m.position.copy(from); scene.add(m);
+  SORT.flyers.push({ m, from: from.clone(), toFn, dur, k: 0, done });
+}
+function updateFlyers(dt) {
+  SORT.flyers = SORT.flyers.filter(f => {
+    f.k = Math.min(1, f.k + dt / f.dur); const e = f.k * f.k * (3 - 2 * f.k);
+    f.m.position.lerpVectors(f.from, f.toFn(), e); f.m.rotation.z += dt * 9;
+    if (f.k < 1) return true;
+    scene.remove(f.m); if (f.done) f.done(); return false;
+  });
+}
+
+// ---------- the crane ----------
+function grab(i) {
+  SORT.held = { i, t: Math.round(aMeta[i * 4]), name: sortName[i] };
+  setHidden(i, true);
+  const w = pointerWorld(); heldMesh.position.copy(w || new THREE.Vector3(0, 1.5, 4));
+  heldMesh.visible = true; claw.visible = true; cable.visible = true; tone('pick');
+}
+function cancelHeld() {
+  const h = SORT.held; if (!h) return;
+  SORT.held = null; heldMesh.visible = false; claw.visible = false; cable.visible = false; setHidden(h.i, false);
+}
+function dropHeld() {
+  const h = SORT.held, p = SORT.pointer; if (!h || !p) return;
+  const k = drawerAt(p.x, p.y); if (k < 0) return;          // not over a drawer: keep holding
+  SORT.held = null; heldMesh.visible = false; claw.visible = false; cable.visible = false;
+  const from = heldMesh.position.clone(), d = drawers[k];
+  if (k === h.t) {
+    SORT.active.splice(SORT.active.indexOf(h.i), 1);
+    fly(from, () => new THREE.Vector3(d.x, DRAWER_Y + .2, 1.2), .3, () => filed(h, k), h.t);
+  } else {
+    fly(from, () => pileXYZ(h.i, uniforms.uTime.value).clone(), .5, () => setHidden(h.i, false), h.t);
+    misfile(k);
+  }
+}
+
+// ---------- scoring, weather and commentary ----------
+function filed(h, k) {
+  const d = drawers[k], combo = ++SORT.combo, mult = Math.min(5, 1 + Math.floor(combo / 4)), gain = 250 * mult;
+  SORT.correct++; SORT.bestCombo = Math.max(SORT.bestCombo, combo); SORT.earned += gain; SORT.score += 100 * mult;
+  money += gain; SORT.pressure = Math.max(0, SORT.pressure - 4);
+  d.count++; d.names.unshift(h.name); d.names.length = Math.min(d.names.length, 3); d.openT = .9; updateLabel(d);
+  const s = toScreen(d.x, DRAWER_Y + 1.6, 1.4);
+  pop('+$' + gain.toLocaleString(), s[0], s[1], '#34D399');
+  const w = combo >= 16 ? 'FILING GOD!' : combo >= 12 ? 'UNSTOPPABLE!' : combo >= 9 ? 'WICKED!' : combo >= 6 ? 'GREAT!' : combo >= 3 ? 'NICE!' : '';
+  if (w) pop(w, s[0], s[1] - 36, d.col);
+  burst(d.x, DRAWER_Y + .4, 1.6); tone('ok');
+  if (combo === 4 || combo === 8 || combo === 12 || combo === 16)
+    say(combo === 4 ? 0 : 1, combo === 4 ? 'FOUR IN A ROW! THE FOLDERS ARE SCARED OF ME!' : 'COMBO ' + combo + ', CHAT! NOBODY SORTS THAT FAST!');
+}
+function misfile(k) {
+  SORT.mistakes++; SORT.combo = 0; SORT.pressure = Math.min(100, SORT.pressure + 10); drawers[k].shake = .6;
+  const s = toScreen(drawers[k].x, DRAWER_Y + 1.6, 1.4); pop('MISFILED!', s[0], s[1] + 26, '#F87171'); tone('bad');
+  if (SORT.mistakes % 3 === 1) say(0, "THAT WASN'T A SPEC! THE FROGS SWAPPED THE LABELS!");
+}
+function storm() {
+  SORT.storms++; SORT.pressure = 45; SORT.combo = 0; SORT.spike = 1.3;
+  const f = document.getElementById('flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
+  tone('storm'); say(1, 'STORM WARNING, CHAT! THE CLOUD IS ANGRY!');
+}
+function weatherName() { return SORT.pressure < 30 ? 'CALM' : SORT.pressure < 60 ? 'BREEZY' : SORT.pressure < 85 ? 'STORMY' : 'SEVERE'; }
+
+const hEls = { t: document.getElementById('hTime'), s: document.getElementById('hScore'), c: document.getElementById('hCombo'),
+  w: document.getElementById('hWx'), p: document.getElementById('hPbar'), l: document.getElementById('hLeft') };
+let hudKey = '';
+function updateHud() {
+  const sec = Math.max(0, Math.ceil(SORT.shift)), mult = Math.min(5, 1 + Math.floor(SORT.combo / 4)), wx = weatherName();
+  const key = [sec, SORT.score, SORT.combo, mult, wx, Math.round(SORT.pressure), SORT.active.length].join('|');
+  if (key === hudKey) return; hudKey = key;
+  hEls.t.textContent = Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+  hEls.s.textContent = SORT.score.toLocaleString();
+  hEls.c.textContent = '×' + mult + ' · ' + SORT.combo + ' IN A ROW';
+  hEls.w.textContent = 'WEATHER · ' + wx; hEls.p.style.width = SORT.pressure + '%';
+  hEls.l.textContent = SORT.active.length;
+}
+
+// ---------- shift flow ----------
+function setupShift() {
+  cancelHeld(); SORT.flyers.forEach(f => scene.remove(f.m)); SORT.flyers = [];
+  for (let i = 0; i < N; i++) { holdArr[i * 4] = 0; holdArr[i * 4 + 1] = -500; holdArr[i * 4 + 2] = 0; holdArr[i * 4 + 3] = 1; }
+  const pool = [];
+  for (let i = 0; i < N; i++) if (aChaos[i * 3 + 1] > -2.5) pool.push(i);     // keep the pile above the drawers
+  for (let k = pool.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)), t = pool[k]; pool[k] = pool[j]; pool[j] = t; }
+  SORT.active = pool.slice(0, ACTIVE_N);
+  for (const i of SORT.active) { holdArr[i * 4 + 3] = 0; sortName[i] = sampleName(Math.round(aMeta[i * 4])); }
+  holdAttr.needsUpdate = true;
+  Object.assign(SORT, { shift: SHIFT_SECS, correct: 0, mistakes: 0, combo: 0, bestCombo: 0, storms: 0, earned: 0, score: 0, pressure: 20, spike: 0, dropOver: -1 });
+  drawers.forEach(d => { d.count = 0; d.names = []; d.openT = 0; updateLabel(d); });
+  hudKey = '';
+}
+function startCountdown() {
+  setupShift(); SORT.state = 'count'; SORT.cd = 3; SORT.goT = 0;
+  document.getElementById('sortIntro').classList.remove('on'); document.getElementById('sortEnd').classList.remove('on');
+  document.getElementById('count').classList.add('on');
+}
+function endShift(cleared) {
+  if (SORT.state !== 'run') return;
+  SORT.state = 'over'; cancelHeld();
+  if (cleared) { money += 5000; SORT.earned += 5000; SORT.score += 1000; }
+  const tries = SORT.correct + SORT.mistakes, acc = tries ? Math.round(100 * SORT.correct / tries) : 0;
+  if (SORT.score > SORT.best) { SORT.best = SORT.score; try { localStorage.setItem('orderEngineBest', String(SORT.best)); } catch (e) {} }
+  document.getElementById('eTitle').textContent = cleared ? 'CLEAN SWEEP!' : 'SHIFT OVER';
+  document.getElementById('eStats').innerHTML = [['Filed', SORT.correct], ['Accuracy', acc + '%'], ['Best combo', SORT.bestCombo + ' in a row'],
+    ['Storms', SORT.storms], ['Earned', '$' + SORT.earned.toLocaleString()], ['Score', SORT.score.toLocaleString()], ['Best score', SORT.best.toLocaleString()]]
+    .map(r => '<span>' + r[0] + '</span><b>' + r[1] + '</b>').join('');
+  document.getElementById('sortEnd').classList.add('on');
+  say(0, cleared ? "EVERYTHING WHERE IT BELONGS! I'M CRYING!" : "THAT'S A WRAP, CHAT! SHOW ME THE RECEIPTS!");
+}
+function enterSort() {
+  if (SORT.on) return;
+  SORT.on = true; SORT.state = 'intro'; SORT.shift = SHIFT_SECS;
+  playing = false; goal = null; brainT = -1; setP(0); uniforms.uBrain.value = 1; uniforms.uWobble.value = .4;
+  document.getElementById('dock').style.display = 'none';
+  vault.visible = vault2.visible = sparks.visible = beam.visible = false;
+  document.getElementById('sortHud').classList.add('on');
+  document.getElementById('sortIntro').classList.add('on');
+  controls.autoRotate = false; controls.enabled = false;
+  phaseEl.textContent = 'SORT SHIFT'; lastPhase = 'SORT SHIFT';
+  shoutEl.classList.remove('on'); shoutT = 0;
+  setupShift();
+}
+function exitSort() {
+  if (!SORT.on) return;
+  cancelHeld(); SORT.flyers.forEach(f => scene.remove(f.m)); SORT.flyers = [];
+  SORT.on = false; SORT.state = 'idle';
+  holdArr.fill(0); holdAttr.needsUpdate = true;
+  drawers.forEach(d => { d.g.visible = false; d.lab.classList.remove('on'); });
+  heldMesh.visible = false; claw.visible = false; cable.visible = false;
+  document.getElementById('sortHud').classList.remove('on');
+  document.getElementById('sortIntro').classList.remove('on');
+  document.getElementById('sortEnd').classList.remove('on');
+  document.getElementById('count').classList.remove('on');
+  document.getElementById('reticle').style.display = 'none'; document.getElementById('tip').style.display = 'none';
+  document.getElementById('dock').style.display = '';
+  vault.visible = vault2.visible = sparks.visible = beam.visible = true;
+  controls.enabled = true; controls.autoRotate = true; controls.target.set(0, 1.5, 0); camera.position.set(0, 3, 23);
+  dolly = 0; lastPhase = ''; uniforms.uWobble.value = .7; shoutT = 0; shoutEl.classList.remove('on');
+}
+
+function updateSort(dt) {
+  const T = uniforms.uTime.value, dist = Math.max(24, 10 / ((innerWidth / innerHeight) * .4663));
+  camera.position.set(0, 2.2, dist); camera.lookAt(0, 1.5, 0); camera.updateMatrixWorld();
+  const topY = 1.5 + .95 * dist * .4663, h = SORT.held, tip = document.getElementById('tip'), ret = document.getElementById('reticle');
+
+  if (SORT.state === 'count') {
+    SORT.cd -= dt; const cnt = document.getElementById('count');
+    if (SORT.cd > 0) cnt.textContent = String(Math.ceil(SORT.cd));
+    else if (SORT.goT === 0) { SORT.goT = .7; cnt.textContent = 'GO!'; }
+    else { SORT.goT -= dt; if (SORT.goT <= 0) { SORT.state = 'run'; cnt.classList.remove('on'); } }
+  }
+  if (SORT.state === 'run') {
+    SORT.shift -= dt;
+    SORT.pressure = Math.min(100, SORT.pressure + dt * (.6 + SORT.active.length / 200));
+    if (SORT.spike > 0) SORT.spike -= dt;
+    if (SORT.pressure >= 100) storm();
+    if (SORT.shift <= 0) endShift(false);
+    else if (SORT.active.length === 0 && SORT.flyers.length === 0) endShift(true);
+  }
+  uniforms.uWobble.value = .2 + SORT.pressure * .009 + (SORT.spike > 0 ? 1.1 : 0);
+
+  // hover: the reticle and file name follow the nearest card under the pointer
+  SORT.hover = SORT.state === 'run' && !h && SORT.pointer ? nearestPile(SORT.pointer.x, SORT.pointer.y) : -1;
+  if (SORT.hover >= 0) {
+    pileXYZ(SORT.hover, T); const s = toScreen(_pp.x, _pp.y, _pp.z);
+    ret.style.display = 'block'; ret.style.transform = `translate(${s[0] - 22}px, ${s[1] - 22}px)`;
+    tip.style.display = 'block'; tip.textContent = sortName[SORT.hover];
+    tip.style.transform = `translate(${SORT.pointer.x + 16}px, ${SORT.pointer.y + 14}px)`;
+  } else { ret.style.display = 'none'; if (!h) tip.style.display = 'none'; }
+
+  // the crane: the held card follows the pointer, a cable runs up to the top of the screen
+  SORT.dropOver = h && SORT.pointer ? drawerAt(SORT.pointer.x, SORT.pointer.y) : -1;
+  if (h) {
+    const w = pointerWorld(); if (w) heldMesh.position.copy(w);
+    heldMesh.rotation.z += dt * 2; heldMesh.rotation.x = Math.sin(T * 3) * .2;
+    claw.position.copy(heldMesh.position); claw.position.y += .6; claw.rotation.y += dt * 3;
+    const pa = cableGeo.attributes.position;
+    pa.setXYZ(0, heldMesh.position.x, topY, 4); pa.setXYZ(1, heldMesh.position.x, heldMesh.position.y + .6, 4); pa.needsUpdate = true;
+    if (SORT.pointer) { tip.style.display = 'block'; tip.textContent = h.name; tip.style.transform = `translate(${SORT.pointer.x + 16}px, ${SORT.pointer.y + 14}px)`; }
+  }
+
+  // drawers: open when filed into, shake on a misfile, label rides above each one
+  drawers.forEach((d, k) => {
+    d.g.visible = SORT.on;
+    d.openT = Math.max(0, d.openT - dt);
+    d.open += ((d.openT > 0 ? 1 : 0) - d.open) * Math.min(1, dt * 8);
+    d.shake = Math.max(0, d.shake - dt * 3);
+    d.front.position.z = 1.18 + d.open * 1.1;
+    d.front.position.x = Math.sin(T * 45) * d.shake * .12;
+    d.front.material.emissiveIntensity = .25 + d.open * .8 + (SORT.dropOver === k ? 1 : 0);
+    const s = toScreen(d.x, DRAWER_Y + 1.5, .8);
+    d.lab.style.transform = `translate(${s[0]}px, ${s[1]}px) translate(-50%, -100%)`;
+    d.lab.classList.add('on'); d.lab.classList.toggle('hot', SORT.dropOver === k);
+  });
+  updateFlyers(dt); updateHud();
+}
+
+// ---------- input: click a card to grab it, click a drawer to drop it ----------
+document.getElementById('play').onclick = enterSort;
+document.getElementById('iBack').onclick = exitSort;
+document.getElementById('hExit').onclick = exitSort;
+document.getElementById('eBack').onclick = exitSort;
+document.getElementById('iGo').onclick = startCountdown;
+document.getElementById('eAgain').onclick = startCountdown;
+const cv = renderer.domElement; cv.style.touchAction = 'none';
+cv.addEventListener('pointermove', e => { SORT.pointer = { x: e.clientX, y: e.clientY }; });
+cv.addEventListener('pointerleave', () => { SORT.pointer = null; });
+cv.addEventListener('pointerdown', e => {
+  if (!SORT.on || SORT.state !== 'run') return;
+  SORT.pointer = { x: e.clientX, y: e.clientY };
+  if (SORT.held) dropHeld(); else { const i = nearestPile(e.clientX, e.clientY); if (i >= 0) grab(i); }
+});
+cv.addEventListener('contextmenu', e => { if (SORT.on) { e.preventDefault(); cancelHeld(); } });
+
+
 window.__engine = { uniforms, setP, renderer, setForm, shout, dur: () => shoutT, setRegime: r => { regime = r; regimeT = 0; flashNews(); cuePending = true; }, stats: () => ({ lowPower: LOW_POWER, renderScale, qStep, width: renderer.domElement.width, height: renderer.domElement.height }) };
+// test hooks for the sort shift (read-only helpers plus start/exit)
+window.__engine.sort = { enter: enterSort, start: startCountdown, exit: exitSort, S: SORT, drawers,
+  adv: s => { for (let t = 0; t < s; t += .05) updateSort(.05); },
+  pile: i => { pileXYZ(i, uniforms.uTime.value); return toScreen(_pp.x, _pp.y, _pp.z); },
+  drawer: k => toScreen(DRAWERS[k].x, DRAWER_Y, 0), kind: i => Math.round(aMeta[i * 4]), name: i => sortName[i] };
 </script>
 </body>
 </html>
